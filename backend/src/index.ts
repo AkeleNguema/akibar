@@ -4,6 +4,10 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes';
 import saleRoutes from './routes/saleRoutes';
 import productRoutes from './routes/productRoutes';
+import debtRoutes from './routes/debtRoutes';
+import stockRoutes from './routes/stockRoutes';
+import expenseRoutes from './routes/expenseRoutes';
+import closureRoutes from './routes/closureRoutes';
 dotenv.config();
 
 const app = express();
@@ -16,6 +20,10 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/sales', saleRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/debts', debtRoutes);
+app.use('/api/stock', stockRoutes);
+app.use('/api/expenses', expenseRoutes);
+app.use('/api/closures', closureRoutes);
 
 app.get('/', (req, res) => {
   res.send('API Akibar opérationnelle 🍺');
