@@ -1,0 +1,6 @@
+# Ne jamais envoyer les variables d'environnement ni les dépendances
+**/node_modules
+dist
+**/.env
+.env*
+.DS_Store

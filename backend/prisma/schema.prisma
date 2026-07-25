@@ -1,0 +1,131 @@
+datasource db {
+  provider = "postgresql"
+  
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. Table des Bars / Établissements
+model Bar {
+  id        String   @id // ex: "REG45bar"
+  nomBar    String
+  pinHash   String   // PIN à 4 chiffres haché
+  createdAt DateTime @default(now())
+
+  products       Product[]
+  stocks         Stock[]
+  sales          Sale[]
+  consignes      Consigne[]
+  expenses       Expense[]
+  cashClosings   CashClosing[]
+  auditLogs      AuditLog[]
+}
+
+// 2. Catalogue des Produits (Boissons)
+model Product {
+  id                   String   @id @default(uuid())
+  barId                String
+  nom                  String   // ex: "Régab 65cl"
+  categorie            String   @default("Bière") // Bière, Soda, Jus, Spiritueux
+  bouteillesParCasier  Int      @default(24)
+  prixAchatCasier      Float    // ex: 10000 FCFA
+  prixVenteBouteille   Float    // ex: 600 FCFA
+  seuilStockBas        Int      @default(12) // Alerte en bouteilles
+
+  bar                  Bar        @relation(fields: [barId], references: [id], onDelete: Cascade)
+  stocks               Stock[]
+  saleItems            SaleItem[]
+
+  @@unique([barId, nom])
+}
+
+// 3. Suivi du Stock physique
+model Stock {
+  id                 String   @id @default(uuid())
+  barId              String
+  productId          String
+  quantiteBouteilles Int      @default(0) // Stock d'unités
+  casiersVides       Int      @default(0) // Stock d'emballages vides
+
+  bar                Bar      @relation(fields: [barId], references: [id], onDelete: Cascade)
+  product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([barId, productId])
+}
+
+// 4. Enregistrement des Ventes (Caisse)
+model Sale {
+  id           String     @id @default(uuid())
+  barId        String
+  totalAmount  Float
+  paymentMode  String     // "ESPECES", "AIRTEL_MONEY", "MOOV_MONEY", "ARDOISE"
+  status       String     @default("PAYE") // "PAYE", "EN_ATTENTE"
+  nomClient    String?    // Rempli si Ardoise / Crédit
+  createdAt    DateTime   @default(now())
+
+  bar          Bar        @relation(fields: [barId], references: [id], onDelete: Cascade)
+  items        SaleItem[]
+}
+
+// 5. Lignes de Détail de chaque Vente
+model SaleItem {
+  id                String   @id @default(uuid())
+  saleId            String
+  productId         String
+  quantite          Int      // Nombre de bouteilles
+  prixUnitaireVente Float
+  prixUnitaireAchat Float    // Pour calcul de la marge brute
+  typeVente         String   @default("VENTE") // "VENTE", "PERTE", "CASSE", "OFFERT"
+
+  sale              Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product           Product  @relation(fields: [productId], references: [id])
+}
+
+// 6. Gestion des Consignes (Casiers/Bouteilles emportés)
+model Consigne {
+  id            String   @id @default(uuid())
+  barId         String
+  nomClient     String
+  nombreCasiers Int
+  statut        String   @default("EN_COURS") // "EN_COURS", "RESTITUE"
+  createdAt     DateTime @default(now())
+
+  bar           Bar      @relation(fields: [barId], references: [id], onDelete: Cascade)
+}
+
+// 7. Gestion des Dépenses & Charges
+model Expense {
+  id        String   @id @default(uuid())
+  barId     String
+  motif     String   // ex: "Achat Glaçons", "Loyer", "Facture SEEG"
+  montant   Float
+  categorie String   // "APPROVISIONNEMENT", "CHARGES", "SALAIRES"
+  createdAt DateTime @default(now())
+
+  bar       Bar      @relation(fields: [barId], references: [id], onDelete: Cascade)
+}
+
+// 8. Clôture de Caisse (Bilan de fin de journée)
+model CashClosing {
+  id              String   @id @default(uuid())
+  barId           String
+  montantAttendu  Float    // Calculé par l'app
+  montantReel     Float    // Saisi par le caissier
+  ecart           Float    // Reel - Attendu
+  createdAt       DateTime @default(now())
+
+  bar             Bar      @relation(fields: [barId], references: [id], onDelete: Cascade)
+}
+
+// 9. Journal d'Audit (Anti-fraude)
+model AuditLog {
+  id        String   @id @default(uuid())
+  barId     String
+  action    String   // ex: "ANNULATION_VENTE", "MODIF_PRIX"
+  details   String
+  createdAt DateTime @default(now())
+
+  bar       Bar      @relation(fields: [barId], references: [id], onDelete: Cascade)
+}
