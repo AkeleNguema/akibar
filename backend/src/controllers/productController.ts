@@ -1,21 +1,27 @@
 import { Response } from 'express';
 import { prisma } from '../config/prisma';
-import { AuthRequest } from '../middlewares/authMiddleware';
 
-export const getBarProducts = async (req: AuthRequest, res: Response): Promise<void> => {
-  const barId = req.barId;
+export const getBarProducts = async (req: any, res: Response): Promise<void> => {
+  const barId = req.barId || req.bar?.id;
+
+  if (!barId) {
+    res.status(401).json({ error: 'Établissement non authentifié.' });
+    return;
+  }
 
   try {
-    const stocks = await prisma.stock.findMany({
+    const products = await prisma.product.findMany({
       where: { barId },
       include: {
-        product: true,
-      },
+        stocks: {
+          where: { barId }
+        }
+      }
     });
 
-    res.json(stocks);
+    res.json(products);
   } catch (error) {
-    console.error('Erreur lors de la récupération du stock:', error);
+    console.error('Erreur lors de la récupération des produits:', error);
     res.status(500).json({ error: 'Erreur serveur lors de la récupération des produits.' });
   }
 };
