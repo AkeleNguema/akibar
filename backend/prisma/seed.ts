@@ -9,7 +9,7 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   console.log('🌱 Démarrage du seed Akibar...');
 
-  // 1. Création / Vérification du Bar de test
+  //  Création / Vérification du Bar de test
   const pinHash = await bcrypt.hash('1234', 10);
   const bar = await prisma.bar.upsert({
     where: { id: 'REG45bar' },

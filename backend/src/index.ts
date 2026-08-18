@@ -29,6 +29,6 @@ app.get('/', (req, res) => {
   res.send('API Akibar opérationnelle 🍺');
 });
 
-app.listen(PORT, () => {
-  console.log(`Yo Animg, le serveur Akibar est lancé sur http://localhost:${PORT}`);
+app.listen(Number(PORT), '0.0.0.0', () => {
+  console.log(`Yo Animg, le serveur Akibar est lancé sur http://127.0.0.1:${PORT}`);
 });
