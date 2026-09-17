@@ -86,7 +86,7 @@ export const createDebt = async (req: any, res: Response) => {
 // 2. Récupérer toutes les ventes sous forme d'ardoises (non payées)
 export const getActiveDebts = async (req: any, res: Response) => {
   try {
-    const barId = req.bar?.id || req.bar?.Id || req.query.barId;
+    const barId = req.bar?.id || req.bar?.Id || req.query.barId || req.barId;
 
     if (!barId) {
       return res.status(401).json({ message: "Établissement non identifié." });

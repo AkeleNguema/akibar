@@ -4,13 +4,14 @@ import { AuthRequest } from '../middlewares/authMiddleware';
 
 export const createSale = async (req: AuthRequest, res: Response): Promise<void> => {
   console.log("createSale payload:", req.body); // Log pour diagnostiquer le payload envoyé par le frontend
-  const barId = req.barId;
+  const barIdRaw = req.barId;
   const { items, paymentMode, nomClient, totalAmount: frontendTotal, syncId } = req.body;
 
-  if (!barId) {
+  if (!barIdRaw) {
     res.status(401).json({ error: 'Bar non identifié.' });
     return;
   }
+  const barId = barIdRaw; // Typé comme string strict
 
   // Le frontend CashRegister envoie 'items'
   if (!items || !Array.isArray(items) || items.length === 0) {
@@ -39,7 +40,7 @@ export const createSale = async (req: AuthRequest, res: Response): Promise<void>
     const saleResult = await prisma.$transaction(
       async (tx) => {
         let calculatedTotal = 0;
-        const saleItemsData = [];
+        const saleItemsData: any[] = [];
 
         // Boucle sur les articles du panier
         for (const item of items) {
@@ -55,26 +56,31 @@ export const createSale = async (req: AuthRequest, res: Response): Promise<void>
             where: { barId, productId: item.productId },
           });
 
-          if (!stock || stock.quantiteBouteilles < item.quantite) {
+          const quantite = Number(item.quantite);
+          if (isNaN(quantite) || quantite <= 0) {
+            throw new Error(`Quantité invalide pour le produit: ${item.productId}`);
+          }
+
+          if (!stock || stock.quantiteBouteilles < quantite) {
             throw new Error(`Stock insuffisant pour: ${product.nom}`);
           }
 
           // Calcul des prix
           const prixUnitaireVente = product.prixVenteBouteille;
-          const prixUnitaireAchat = product.prixAchatCasier / product.bouteillesParCasier;
-          calculatedTotal += prixUnitaireVente * item.quantite;
+          const prixUnitaireAchat = product.bouteillesParCasier > 0 ? (product.prixAchatCasier / product.bouteillesParCasier) : 0;
+          calculatedTotal += prixUnitaireVente * quantite;
 
           // Déduire les bouteilles vendues du stock
           await tx.stock.update({
             where: { id: stock.id },
             data: {
-              quantiteBouteilles: { decrement: item.quantite },
+              quantiteBouteilles: { decrement: quantite },
             },
           });
 
           saleItemsData.push({
             productId: item.productId,
-            quantite: item.quantite,
+            quantite: quantite,
             prixUnitaireVente,
             prixUnitaireAchat,
             typeVente: 'VENTE',
@@ -102,8 +108,8 @@ export const createSale = async (req: AuthRequest, res: Response): Promise<void>
         return { sale };
       },
       {
-        maxWait: 10000, 
-        timeout: 15000, 
+        maxWait: 10000,
+        timeout: 15000,
       }
     );
 
@@ -112,7 +118,7 @@ export const createSale = async (req: AuthRequest, res: Response): Promise<void>
       data: saleResult,
     });
   } catch (error: any) {
-    console.error('Erreur lors de la vente:', error);
-    res.status(400).json({ error: error.message || 'Erreur lors de la vente.' });
+    console.error('Erreur complète lors de la vente:', error);
+    res.status(400).json({ error: error.message || 'Erreur lors de la vente.', details: error.stack });
   }
 };

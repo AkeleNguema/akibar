@@ -113,3 +113,42 @@ export const createClosure = async (req: AuthRequest, res: Response) => {
     return res.status(500).json({ message: "Erreur lors de la clôture de caisse", error: error.message });
   }
 };
+
+// Obtenir le détail des opérations de la journée en cours
+export const getDailyDetails = async (req: AuthRequest, res: Response) => {
+  try {
+    const barId = req.barId;
+    if (!barId) {
+      return res.status(401).json({ message: "Non autorisé" });
+    }
+
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const cashSales = await prisma.sale.findMany({
+      where: { barId, createdAt: { gte: startOfDay }, paymentMode: "ESPECES" },
+      include: { items: { include: { product: true } } },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const debtSales = await prisma.sale.findMany({
+      where: { barId, createdAt: { gte: startOfDay }, paymentMode: "ARDOISE" },
+      include: { items: { include: { product: true } } },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const expenses = await prisma.expense.findMany({
+      where: { barId, createdAt: { gte: startOfDay } },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return res.status(200).json({
+      cashSales,
+      debtSales,
+      expenses
+    });
+  } catch (error: any) {
+    console.error("Erreur getDailyDetails:", error);
+    return res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
