@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getDebts, createDebt, payDebt, type Debt } from '../services/debtService';
+import '../styles/debt.css';
 
 export const DebtManager: React.FC = () => {
   const [debts, setDebts] = useState<Debt[]>([]);
@@ -18,7 +19,7 @@ export const DebtManager: React.FC = () => {
     try {
       setLoading(true);
       const data = await getDebts();
-      setDebts(data);
+      setDebts(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Erreur lors du chargement des ardoises :', error);
     } finally {
@@ -63,20 +64,19 @@ export const DebtManager: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+    <div className="debt-container">
       <h1>📋 Gestion des Ardoises Clients</h1>
 
       {/* Formulaire de création d'ardoise */}
-      <div style={{ background: '#f9f9f9', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
+      <div className="debt-form-card">
         <h3>Ajouter une Ardoise</h3>
-        <form onSubmit={handleCreateDebt} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        <form className="debt-form" onSubmit={handleCreateDebt}>
           <input
             type="text"
             placeholder="Nom du client"
             value={customerName}
             onChange={(e) => setCustomerName(e.target.value)}
             required
-            style={{ padding: '8px', flex: '1' }}
           />
           <input
             type="number"
@@ -84,18 +84,14 @@ export const DebtManager: React.FC = () => {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             required
-            style={{ padding: '8px', width: '150px' }}
           />
           <input
             type="text"
             placeholder="Note (optionnel)"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            style={{ padding: '8px', flex: '1' }}
           />
-          <button type="submit" style={{ padding: '8px 16px', cursor: 'pointer' }}>
-            Enregistrer
-          </button>
+          <button type="submit">Enregistrer</button>
         </form>
       </div>
 
@@ -107,47 +103,25 @@ export const DebtManager: React.FC = () => {
         ) : debts.length === 0 ? (
           <p>Aucune ardoise en cours.</p>
         ) : (
-          <ul style={{ listStyle: 'none', padding: 0 }}>
+          <ul className="debt-list">
             {debts.map((debt) => (
-              <li
-                key={debt.id}
-                style={{
-                  border: '1px solid #ccc',
-                  borderRadius: '6px',
-                  padding: '12px',
-                  marginBottom: '10px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '10px',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+              <li key={debt.id} className="debt-item">
+                <div className="debt-header">
                   <div>
-                    <strong>{debt.customerName}</strong>
-                    <div>
-                      Reste : <span style={{ color: 'red', fontWeight: 'bold' }}>{debt.remainingAmount} FCFA</span> / Total : {debt.amount} FCFA
+                    <div className="debt-customer">{debt.customerName}</div>
+                    <div className="debt-amounts">
+                      Reste : <span className="debt-remaining">{debt.remainingAmount} FCFA</span> / Total : {debt.amount} FCFA
                     </div>
-                    {debt.notes && <small style={{ color: '#666' }}>Note : {debt.notes}</small>}
+                    {debt.notes && <small style={{ color: '#aaa' }}>Note : {debt.notes}</small>}
                   </div>
 
-                  <div>
-                    <span
-                      style={{
-                        padding: '4px 8px',
-                        borderRadius: '4px',
-                        fontSize: '12px',
-                        marginRight: '10px',
-                        background: debt.status === 'PAID' ? '#d4edda' : debt.status === 'PARTIAL' ? '#fff3cd' : '#f8d7da',
-                      }}
-                    >
-                      {debt.status}
+                  <div className="debt-actions" style={{ display: 'flex', alignItems: 'center' }}>
+                    <span className={`debt-badge ${debt.status.toLowerCase()}`}>
+                      {debt.status === 'PAID' ? 'Payé' : debt.status === 'PARTIAL' ? 'Partiel' : 'Non payé'}
                     </span>
 
                     {debt.status !== 'PAID' && (
-                      <button
-                        onClick={() => setSelectedDebtId(selectedDebtId === debt.id ? null : debt.id)}
-                        style={{ padding: '4px 8px', cursor: 'pointer' }}
-                      >
+                      <button onClick={() => setSelectedDebtId(selectedDebtId === debt.id ? null : debt.id)}>
                         Régler
                       </button>
                     )}
@@ -155,17 +129,14 @@ export const DebtManager: React.FC = () => {
                 </div>
 
                 {selectedDebtId === debt.id && (
-                  <div style={{ width: '100%', display: 'flex', gap: '5px' }}>
+                  <div className="debt-pay-box">
                     <input
                       type="number"
                       placeholder="Montant payé"
                       value={paymentAmount}
                       onChange={(e) => setPaymentAmount(e.target.value)}
-                      style={{ padding: '4px' }}
                     />
-                    <button onClick={() => handlePayDebt(debt.id)} style={{ padding: '4px 8px' }}>
-                      Valider
-                    </button>
+                    <button onClick={() => handlePayDebt(debt.id)}>Valider</button>
                   </div>
                 )}
               </li>

@@ -1,0 +1,131 @@
+.debt-container {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.debt-form-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 25px;
+}
+
+.debt-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.debt-form input {
+  flex: 1;
+  min-width: 150px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.2);
+  color: #fff;
+}
+
+.debt-form button {
+  padding: 12px 24px;
+  border-radius: 8px;
+  background: #f59e0b;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.debt-form button:hover {
+  background: #d97706;
+}
+
+.debt-list {
+  list-style: none;
+  padding: 0;
+}
+
+.debt-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 0.2s;
+}
+
+.debt-item:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.debt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.debt-customer {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.debt-amounts {
+  font-size: 0.9em;
+  color: #cbd5e1;
+  margin-top: 5px;
+}
+
+.debt-remaining {
+  color: #ef4444;
+  font-weight: bold;
+}
+
+.debt-badge {
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.debt-badge.UNPAID { background: #fee2e2; color: #991b1b; }
+.debt-badge.PARTIAL { background: #fef3c7; color: #92400e; }
+.debt-badge.PAID { background: #d1fae5; color: #065f46; }
+
+.debt-actions button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.debt-actions button:hover {
+  background: #2563eb;
+}
+
+.debt-pay-box {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.debt-pay-box input {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(0,0,0,0.3);
+  color: #fff;
+}

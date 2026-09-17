@@ -3,72 +3,95 @@ import { prisma } from '../config/prisma';
 import { AuthRequest } from '../middlewares/authMiddleware';
 
 export const createSale = async (req: AuthRequest, res: Response): Promise<void> => {
+  console.log("createSale payload:", req.body); // Log pour diagnostiquer le payload envoyé par le frontend
   const barId = req.barId;
-  const { productId, quantite, paymentMode, nomClient } = req.body;
+  const { items, paymentMode, nomClient, totalAmount: frontendTotal, syncId } = req.body;
 
   if (!barId) {
     res.status(401).json({ error: 'Bar non identifié.' });
     return;
   }
 
-  if (!productId || !quantite || quantite <= 0) {
-    res.status(400).json({ error: 'Produit et quantité valide requis.' });
+  // Le frontend CashRegister envoie 'items'
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    res.status(400).json({ error: 'Panier vide ou invalide.' });
     return;
   }
 
   try {
-    // 💡 Ajout des options maxWait et timeout en 2nd argument
+    // 💡 IDEMPOTENCE: Si un syncId est fourni, vérifier si la vente n'existe pas déjà
+    if (syncId) {
+      const existingSale = await prisma.sale.findUnique({
+        where: { syncId },
+        include: { items: true }
+      });
+
+      if (existingSale) {
+        console.log(`Vente déjà enregistrée (syncId: ${syncId}). Renvoi de la réponse précédente.`);
+        res.status(200).json({
+          message: 'Vente déjà synchronisée.',
+          data: { sale: existingSale },
+        });
+        return;
+      }
+    }
+
     const saleResult = await prisma.$transaction(
       async (tx) => {
-        // 1. Récupérer le produit pour connaître son prix de vente et son prix d'achat
-        const product = await tx.product.findUnique({
-          where: { id: productId },
-        });
+        let calculatedTotal = 0;
+        const saleItemsData = [];
 
-        if (!product) {
-          throw new Error('Produit introuvable.');
+        // Boucle sur les articles du panier
+        for (const item of items) {
+          const product = await tx.product.findUnique({
+            where: { id: item.productId },
+          });
+
+          if (!product) {
+            throw new Error(`Produit introuvable: ${item.productId}`);
+          }
+
+          const stock = await tx.stock.findFirst({
+            where: { barId, productId: item.productId },
+          });
+
+          if (!stock || stock.quantiteBouteilles < item.quantite) {
+            throw new Error(`Stock insuffisant pour: ${product.nom}`);
+          }
+
+          // Calcul des prix
+          const prixUnitaireVente = product.prixVenteBouteille;
+          const prixUnitaireAchat = product.prixAchatCasier / product.bouteillesParCasier;
+          calculatedTotal += prixUnitaireVente * item.quantite;
+
+          // Déduire les bouteilles vendues du stock
+          await tx.stock.update({
+            where: { id: stock.id },
+            data: {
+              quantiteBouteilles: { decrement: item.quantite },
+            },
+          });
+
+          saleItemsData.push({
+            productId: item.productId,
+            quantite: item.quantite,
+            prixUnitaireVente,
+            prixUnitaireAchat,
+            typeVente: 'VENTE',
+          });
         }
 
-        // 2. Vérifier le stock disponible
-        const stock = await tx.stock.findFirst({
-          where: { barId, productId },
-        });
-
-        if (!stock || stock.quantiteBouteilles < quantite) {
-          throw new Error('Stock insuffisant pour réaliser cette vente.');
-        }
-
-        // Calcul des prix
-        const prixUnitaireVente = product.prixVenteBouteille;
-        const prixUnitaireAchat = product.prixAchatCasier / product.bouteillesParCasier;
-        const totalAmount = prixUnitaireVente * quantite;
-
-        // 3. Déduire les bouteilles vendues du stock
-        const updatedStock = await tx.stock.update({
-          where: { id: stock.id },
-          data: {
-            quantiteBouteilles: { decrement: quantite },
-          },
-        });
-
-        // 4. Créer la vente principale
+        // Créer la vente principale avec tous les articles
         const sale = await tx.sale.create({
           data: {
             barId,
-            totalAmount,
+            totalAmount: calculatedTotal,
             paymentMode: paymentMode || 'ESPECES',
             status: paymentMode === 'ARDOISE' ? 'EN_ATTENTE' : 'PAYE',
             nomClient: nomClient || null,
+            syncId: syncId || null,
             items: {
-              create: [
-                {
-                  productId,
-                  quantite,
-                  prixUnitaireVente,
-                  prixUnitaireAchat,
-                  typeVente: 'VENTE',
-                },
-              ],
+              create: saleItemsData,
             },
           },
           include: {
@@ -76,11 +99,11 @@ export const createSale = async (req: AuthRequest, res: Response): Promise<void>
           },
         });
 
-        return { sale, updatedStock };
+        return { sale };
       },
       {
-        maxWait: 10000, // Attente max pour obtenir une connexion du pool (10s)
-        timeout: 15000,  // Délai max d'exécution de la transaction (15s)
+        maxWait: 10000, 
+        timeout: 15000, 
       }
     );
 

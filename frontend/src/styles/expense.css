@@ -1,0 +1,72 @@
+.expense-container {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.expense-form-card, .expense-list-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.expense-form {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.expense-form input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.2);
+  color: #fff;
+}
+
+.expense-form input::placeholder {
+  color: #aaa;
+}
+
+.expense-form button {
+  padding: 12px 24px;
+  border-radius: 8px;
+  background: #ef4444; /* Red for expense */
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s ease;
+}
+
+.expense-form button:hover {
+  background: #dc2626;
+}
+
+.expense-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.expense-item:last-child {
+  border-bottom: none;
+}
+
+.expense-info strong {
+  font-size: 1.1em;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.expense-amount {
+  font-weight: bold;
+  color: #f87171;
+  font-size: 1.2em;
+}

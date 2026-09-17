@@ -63,6 +63,7 @@ model Sale {
   paymentMode  String     // "ESPECES", "AIRTEL_MONEY", "MOOV_MONEY", "ARDOISE"
   status       String     @default("PAYE") // "PAYE", "EN_ATTENTE"
   nomClient    String?    // Rempli si Ardoise / Crédit
+  syncId       String?    @unique // Clé d'idempotence PWA
   createdAt    DateTime   @default(now())
 
   bar          Bar        @relation(fields: [barId], references: [id], onDelete: Cascade)
