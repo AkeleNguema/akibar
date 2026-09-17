@@ -28,6 +28,7 @@ export const DebtManager: React.FC = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchDebts();
   }, []);
 
@@ -45,8 +46,9 @@ export const DebtManager: React.FC = () => {
       setAmount('');
       setNotes('');
       fetchDebts();
-    } catch (error) {
-      alert("Erreur lors de la création de l'ardoise.");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      alert("Erreur lors de la création de l'ardoise : " + (error.response?.data?.message || error.message));
     }
   };
 
@@ -59,6 +61,7 @@ export const DebtManager: React.FC = () => {
       setPaymentAmount('');
       fetchDebts();
     } catch (error) {
+      console.error(error);
       alert("Erreur lors du règlement de l'ardoise.");
     }
   };

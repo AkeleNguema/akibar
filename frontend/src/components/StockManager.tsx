@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import '../styles/stock.css';
 
 export const StockManager: React.FC = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [products, setProducts] = useState<any[]>([]);
   const [selectedProductId, setSelectedProductId] = useState<string>('');
   const [casiersCount, setCasiersCount] = useState<number | ''>('');
@@ -24,7 +25,9 @@ export const StockManager: React.FC = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchProductsList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleStockSubmit = async (e: React.FormEvent) => {
@@ -46,6 +49,7 @@ export const StockManager: React.FC = () => {
       setMessage({ text: 'Approvisionnement enregistré avec succès !', type: 'success' });
       setCasiersCount('');
       await fetchProductsList();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       setMessage({

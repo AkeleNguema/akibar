@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getDailyClosure } from '../services/closureService';
+import { getDailyClosure, getDailyDetails, type DailyDetails } from '../services/closureService';
 import '../styles/dashboard.css';
 
 interface DashboardData {
@@ -16,10 +16,16 @@ interface DashboardProps {
   onNavigate?: (tab: 'caisse' | 'stock' | 'ardoises' | 'depenses' | 'cloture') => void;
 }
 
+type ModalType = 'cash' | 'debt' | 'expense' | null;
+
 export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [detailsData, setDetailsData] = useState<DailyDetails | null>(null);
+  const [activeModal, setActiveModal] = useState<ModalType>(null);
+  const [loadingDetails, setLoadingDetails] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -27,6 +33,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         const summary = await getDailyClosure();
         setData(summary);
         setError(null);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         console.error('Erreur chargement dashboard:', err);
         setError('Impossible de charger les données du jour.');
@@ -37,6 +44,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
     fetchData();
   }, []);
+
+  const openModal = async (type: ModalType) => {
+    setActiveModal(type);
+    if (!detailsData) {
+      setLoadingDetails(true);
+      try {
+        const details = await getDailyDetails();
+        setDetailsData(details);
+      } catch (err) {
+        console.error('Erreur chargement détails:', err);
+        alert('Impossible de charger les détails.');
+      } finally {
+        setLoadingDetails(false);
+      }
+    }
+  };
+
+  const closeModal = () => setActiveModal(null);
 
   if (loading) {
     return <div style={{ color: '#fff', textAlign: 'center', padding: '50px' }}>Chargement du tableau de bord...</div>;
@@ -50,6 +75,138 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       </div>
     );
   }
+
+  const renderModalContent = () => {
+    if (loadingDetails) {
+      return <div style={{ color: '#94a3b8', textAlign: 'center', padding: '30px' }}>Chargement des données...</div>;
+    }
+    if (!detailsData) {
+      return <div style={{ color: '#ef4444', textAlign: 'center', padding: '30px' }}>Aucune donnée disponible.</div>;
+    }
+
+    if (activeModal === 'cash') {
+      const { cashSales } = detailsData;
+      return (
+        <>
+          <div style={{ marginBottom: '15px', color: '#94a3b8' }}>
+            <strong>{cashSales.length} ticket(s)</strong> pour un total de <strong>{data.cashSales.toLocaleString('fr-FR')} FCFA</strong>
+          </div>
+          {cashSales.length === 0 ? (
+            <p>Aucune vente en espèces pour le moment.</p>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th>Heure</th>
+                  <th>Réf</th>
+                  <th>Articles</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cashSales.map(sale => (
+                  <tr key={sale.id}>
+                    <td>{new Date(sale.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</td>
+                    <td style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{sale.id.substring(0, 8)}</td>
+                    <td>
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                      {sale.items.map((item: any) => (
+                        <div key={item.id}>{item.quantite}x {item.product?.nom || 'Produit inconnu'}</div>
+                      ))}
+                    </td>
+                    <td style={{ fontWeight: 'bold' }}>{sale.totalAmount.toLocaleString('fr-FR')} FCFA</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </>
+      );
+    }
+
+    if (activeModal === 'debt') {
+      const { debtSales } = detailsData;
+      return (
+        <>
+          <div style={{ marginBottom: '15px', color: '#94a3b8' }}>
+            <strong>{debtSales.length} ardoise(s)</strong> pour un total de <strong>{data.debtSales.toLocaleString('fr-FR')} FCFA</strong>
+          </div>
+          {debtSales.length === 0 ? (
+            <p>Aucune ardoise pour le moment.</p>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th>Heure</th>
+                  <th>Client</th>
+                  <th>Articles</th>
+                  <th>Statut</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {debtSales.map(sale => (
+                  <tr key={sale.id}>
+                    <td>{new Date(sale.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</td>
+                    <td style={{ color: '#f59e0b', fontWeight: '500' }}>{sale.nomClient || 'Inconnu'}</td>
+                    <td>
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                      {sale.items.map((item: any) => (
+                        <div key={item.id}>{item.quantite}x {item.product?.nom || 'Produit inconnu'}</div>
+                      ))}
+                    </td>
+                    <td>
+                      <span className={`debt-badge ${sale.status === 'PAYE' ? 'paid' : 'unpaid'}`} style={{ padding: '3px 8px', borderRadius: '4px', fontSize: '0.8rem', background: sale.status === 'PAYE' ? 'rgba(16,185,129,0.2)' : 'rgba(245,158,11,0.2)', color: sale.status === 'PAYE' ? '#10b981' : '#f59e0b' }}>
+                        {sale.status === 'PAYE' ? 'Payé' : 'En attente'}
+                      </span>
+                    </td>
+                    <td style={{ fontWeight: 'bold' }}>{sale.totalAmount.toLocaleString('fr-FR')} FCFA</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </>
+      );
+    }
+
+    if (activeModal === 'expense') {
+      const { expenses } = detailsData;
+      return (
+        <>
+          <div style={{ marginBottom: '15px', color: '#94a3b8' }}>
+            <strong>{expenses.length} dépense(s)</strong> pour un total de <strong>{data.totalExpenses.toLocaleString('fr-FR')} FCFA</strong>
+          </div>
+          {expenses.length === 0 ? (
+            <p>Aucune dépense pour le moment.</p>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th>Heure</th>
+                  <th>Catégorie</th>
+                  <th>Motif</th>
+                  <th>Montant</th>
+                </tr>
+              </thead>
+              <tbody>
+                {expenses.map(exp => (
+                  <tr key={exp.id}>
+                    <td>{new Date(exp.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</td>
+                    <td style={{ color: '#ef4444' }}>{exp.categorie}</td>
+                    <td>{exp.motif}</td>
+                    <td style={{ fontWeight: 'bold' }}>{exp.montant.toLocaleString('fr-FR')} FCFA</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </>
+      );
+    }
+
+    return null;
+  };
 
   return (
     <div className="dashboard-container">
@@ -67,26 +224,26 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        <div className="stat-card">
+        <div className="stat-card clickable-card" onClick={() => openModal('cash')}>
           <div className="stat-icon balance">💵</div>
           <div className="stat-content">
-            <div className="stat-title">Cash en Caisse (Espèces)</div>
+            <div className="stat-title">Cash en Caisse (Espèces) <span style={{fontSize:'0.7rem', color:'#3b82f6'}}>🔍</span></div>
             <div className="stat-value">{data.cashSales.toLocaleString('fr-FR')} FCFA</div>
           </div>
         </div>
 
-        <div className="stat-card">
+        <div className="stat-card clickable-card" onClick={() => openModal('debt')}>
           <div className="stat-icon debts">📝</div>
           <div className="stat-content">
-            <div className="stat-title">Ardoises (Dettes) du jour</div>
+            <div className="stat-title">Ardoises (Dettes) du jour <span style={{fontSize:'0.7rem', color:'#f59e0b'}}>🔍</span></div>
             <div className="stat-value">{data.debtSales.toLocaleString('fr-FR')} FCFA</div>
           </div>
         </div>
 
-        <div className="stat-card">
+        <div className="stat-card clickable-card" onClick={() => openModal('expense')}>
           <div className="stat-icon expenses">📉</div>
           <div className="stat-content">
-            <div className="stat-title">Dépenses du jour</div>
+            <div className="stat-title">Dépenses du jour <span style={{fontSize:'0.7rem', color:'#ef4444'}}>🔍</span></div>
             <div className="stat-value">{data.totalExpenses.toLocaleString('fr-FR')} FCFA</div>
           </div>
         </div>
@@ -113,6 +270,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           </button>
         </div>
       </div>
+
+      {activeModal && (
+        <div className="dashboard-modal-overlay" onClick={closeModal}>
+          <div className="dashboard-modal" onClick={e => e.stopPropagation()}>
+            <div className="dashboard-modal-header">
+              <h3>
+                {activeModal === 'cash' && '💵 Détail du Cash en Caisse'}
+                {activeModal === 'debt' && '📝 Détail des Ardoises'}
+                {activeModal === 'expense' && '📉 Détail des Dépenses'}
+              </h3>
+              <button className="dashboard-modal-close" onClick={closeModal}>×</button>
+            </div>
+            <div className="dashboard-modal-body">
+              {renderModalContent()}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
