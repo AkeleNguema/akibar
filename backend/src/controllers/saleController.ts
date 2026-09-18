@@ -5,7 +5,7 @@ import { AuthRequest } from '../middlewares/authMiddleware';
 export const createSale = async (req: AuthRequest, res: Response): Promise<void> => {
   console.log("createSale payload:", req.body); // Log pour diagnostiquer le payload envoyé par le frontend
   const barIdRaw = req.barId;
-  const { items, paymentMode, nomClient, totalAmount: frontendTotal, syncId } = req.body;
+  const { items, paymentMode, nomClient, totalAmount: frontendTotal, syncId, tableId } = req.body;
 
   if (!barIdRaw) {
     res.status(401).json({ error: 'Bar non identifié.' });
@@ -96,6 +96,7 @@ export const createSale = async (req: AuthRequest, res: Response): Promise<void>
             status: paymentMode === 'ARDOISE' ? 'EN_ATTENTE' : 'PAYE',
             nomClient: nomClient || null,
             syncId: syncId || null,
+            tableId: tableId || null,
             items: {
               create: saleItemsData,
             },
@@ -104,6 +105,17 @@ export const createSale = async (req: AuthRequest, res: Response): Promise<void>
             items: true,
           },
         });
+
+        // Si la vente provient d'une table, libérer la table
+        if (tableId) {
+          await tx.table.update({
+            where: { id: tableId },
+            data: {
+              status: 'LIBRE',
+              currentCart: null,
+            },
+          });
+        }
 
         return { sale };
       },
