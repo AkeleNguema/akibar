@@ -17,6 +17,7 @@ model Bar {
   products       Product[]
   stocks         Stock[]
   sales          Sale[]
+  tables         Table[]
   consignes      Consigne[]
   expenses       Expense[]
   cashClosings   CashClosing[]
@@ -64,10 +65,27 @@ model Sale {
   status       String     @default("PAYE") // "PAYE", "EN_ATTENTE"
   nomClient    String?    // Rempli si Ardoise / Crédit
   syncId       String?    @unique // Clé d'idempotence PWA
+  tableId      String?
   createdAt    DateTime   @default(now())
 
   bar          Bar        @relation(fields: [barId], references: [id], onDelete: Cascade)
+  table        Table?     @relation(fields: [tableId], references: [id], onDelete: SetNull)
   items        SaleItem[]
+}
+
+//  Gestion des Tables
+model Table {
+  id          String   @id @default(uuid())
+  barId       String
+  nom         String
+  status      String   @default("LIBRE") // "LIBRE", "OCCUPEE"
+  currentCart Json?
+  createdAt   DateTime @default(now())
+
+  bar         Bar      @relation(fields: [barId], references: [id], onDelete: Cascade)
+  sales       Sale[]
+
+  @@unique([barId, nom])
 }
 
 //  Lignes de Détail de chaque Vente
