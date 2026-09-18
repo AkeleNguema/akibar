@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { getProducts } from '../services/stockService';
 import { createSale } from '../services/saleService';
 import { isOnline, queueOfflineSale } from '../services/syncService';
+import { updateTableCart } from '../services/tableService';
+import type { Table } from '../services/tableService';
+import { TablesView } from './TablesView';
 import '../styles/cashRegister.css';
 
 interface CartItem {
@@ -19,6 +22,9 @@ export const CashRegister: React.FC = () => {
   const [montantRecu, setMontantRecu] = useState<number | ''>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  const [showTables, setShowTables] = useState<boolean>(false);
+  const [selectedTable, setSelectedTable] = useState<Table | null>(null);
 
   const loadCatalog = async () => {
     try {
@@ -108,6 +114,7 @@ export const CashRegister: React.FC = () => {
           paymentMode,
           nomClient: paymentMode === 'ARDOISE' ? nomClient.trim() : undefined,
           syncId,
+          tableId: selectedTable?.id,
         });
         setMessage({ text: 'Vente encaissee avec succès !', type: 'success' });
       } else {
@@ -139,6 +146,43 @@ export const CashRegister: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const handlePutOnHold = async () => {
+    if (!selectedTable) return;
+    setLoading(true);
+    setMessage(null);
+    try {
+      await updateTableCart(selectedTable.id, cart);
+      setMessage({ text: 'Commande mise en attente avec succès.', type: 'success' });
+      setCart([]);
+      setSelectedTable(null);
+      setShowTables(true);
+    } catch (err: any) {
+      console.error(err);
+      setMessage({ text: 'Erreur lors de la mise en attente.', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSelectTable = (table: Table) => {
+    setSelectedTable(table);
+    setShowTables(false);
+    if (table.currentCart && Array.isArray(table.currentCart)) {
+      setCart(table.currentCart);
+    } else {
+      setCart([]);
+    }
+  };
+
+  if (showTables) {
+    return (
+      <TablesView 
+        onSelectTable={handleSelectTable} 
+        onBack={() => setShowTables(false)} 
+      />
+    );
+  }
 
   return (
     <div className="cash-container">
@@ -172,16 +216,27 @@ export const CashRegister: React.FC = () => {
 
       <div className="cart-panel">
         <div className="cart-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 className="cart-title">Caisse / Ticket</h3>
-          {cart.length > 0 && (
-            <button 
-              type="button" 
-              onClick={() => setCart([])}
-              style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', border: '1px solid #ef4444', borderRadius: '8px', padding: '5px 10px', fontSize: '0.85rem', cursor: 'pointer' }}
+          <h3 className="cart-title">
+            {selectedTable ? `Table: ${selectedTable.nom}` : 'Caisse / Ticket'}
+          </h3>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              type="button"
+              onClick={() => setShowTables(true)}
+              style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', padding: '5px 10px', fontSize: '0.85rem', cursor: 'pointer' }}
             >
-              🗑️ Vider
+              Choisir table
             </button>
-          )}
+            {cart.length > 0 && (
+              <button 
+                type="button" 
+                onClick={() => setCart([])}
+                style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', border: '1px solid #ef4444', borderRadius: '8px', padding: '5px 10px', fontSize: '0.85rem', cursor: 'pointer' }}
+              >
+                🗑️ Vider
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="cart-items-list">
@@ -253,6 +308,18 @@ export const CashRegister: React.FC = () => {
               )}
             </>
           ) : null}
+
+          {selectedTable && cart.length > 0 && (
+            <button
+              type="button"
+              className="btn-validate-sale"
+              style={{ marginBottom: '10px', background: '#f59e0b', color: '#fff', border: 'none' }}
+              disabled={loading}
+              onClick={handlePutOnHold}
+            >
+              {loading ? 'Sauvegarde...' : 'En attente'}
+            </button>
+          )}
 
           <button
             type="button"
