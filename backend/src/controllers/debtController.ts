@@ -114,7 +114,13 @@ export const getActiveDebts = async (req: any, res: Response) => {
       remainingAmount: sale.totalAmount, // Simplification pour l'instant
       status: sale.status === 'EN_ATTENTE' ? 'UNPAID' : sale.status === 'PARTIEL' ? 'PARTIAL' : 'PAID',
       notes: '',
-      createdAt: sale.createdAt.toISOString()
+      createdAt: sale.createdAt.toISOString(),
+      items: sale.items.map(item => ({
+        productName: item.product.nom,
+        quantity: item.quantite,
+        unitPrice: item.prixUnitaireVente,
+        subtotal: item.quantite * item.prixUnitaireVente
+      }))
     }));
 
     return res.status(200).json(mappedDebts);
@@ -142,7 +148,8 @@ export const payDebt = async (req: any, res: Response) => {
       where: { id },
       data: {
         status: "PAYE",
-        paymentMode: paymentMode || saleExistante.paymentMode
+        paymentMode: paymentMode || saleExistante.paymentMode,
+        paidAt: new Date()
       }
     });
 

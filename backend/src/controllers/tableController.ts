@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import { prisma } from '../config/prisma';
+import { Prisma } from '@prisma/client';
 import { AuthRequest } from '../middlewares/authMiddleware';
 
 const MASK_NAMES = [
@@ -48,7 +49,7 @@ export const getTables = async (req: AuthRequest, res: Response): Promise<void> 
 
 export const updateTableCart = async (req: AuthRequest, res: Response): Promise<void> => {
   const barId = req.barId;
-  const { id } = req.params;
+  const id = req.params.id as string;
   const { cart } = req.body;
 
   if (!barId) {
@@ -74,7 +75,7 @@ export const updateTableCart = async (req: AuthRequest, res: Response): Promise<
 
 export const freeTable = async (req: AuthRequest, res: Response): Promise<void> => {
   const barId = req.barId;
-  const { id } = req.params;
+  const id = req.params.id as string;
 
   if (!barId) {
     res.status(401).json({ error: 'Bar non identifié.' });
@@ -85,7 +86,7 @@ export const freeTable = async (req: AuthRequest, res: Response): Promise<void> 
     const updatedTable = await prisma.table.update({
       where: { id },
       data: {
-        currentCart: null,
+        currentCart: Prisma.JsonNull,
         status: 'LIBRE',
       },
     });

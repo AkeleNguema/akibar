@@ -1,6 +1,8 @@
 import { Response } from 'express';
 import { prisma } from '../config/prisma';
+import { Prisma } from '@prisma/client';
 import { AuthRequest } from '../middlewares/authMiddleware';
+import { notifyStockAlert } from '../services/notificationService';
 
 export const createSale = async (req: AuthRequest, res: Response): Promise<void> => {
   console.log("createSale payload:", req.body); // Log pour diagnostiquer le payload envoyé par le frontend
@@ -71,21 +73,41 @@ export const createSale = async (req: AuthRequest, res: Response): Promise<void>
           calculatedTotal += prixUnitaireVente * quantite;
 
           // Déduire les bouteilles vendues du stock
+          const newStock = stock.quantiteBouteilles - quantite;
           await tx.stock.update({
             where: { id: stock.id },
             data: {
-              quantiteBouteilles: { decrement: quantite },
+              quantiteBouteilles: newStock,
             },
           });
+
+          if (newStock <= product.seuilStockBas) {
+            await notifyStockAlert(barId, product.nom, newStock);
+          }
 
           saleItemsData.push({
             productId: item.productId,
             quantite: quantite,
             prixUnitaireVente,
             prixUnitaireAchat,
-            typeVente: 'VENTE',
+            typeVente: item.typeVente || 'VENTE',
           });
+
+          if (item.typeVente && item.typeVente !== 'VENTE') {
+            await tx.auditLog.create({
+              data: {
+                barId,
+                action: `DECLARATION_${item.typeVente}`,
+                details: `${quantite}x ${product.nom} déclaré comme ${item.typeVente}`
+              }
+            });
+            // Pour perte/casse/offert, on ne compte pas ça dans le total de la vente
+            calculatedTotal -= (prixUnitaireVente * quantite);
+          }
         }
+        
+        // S'assurer que le total n'est pas négatif
+        calculatedTotal = Math.max(0, calculatedTotal);
 
         // Créer la vente principale avec tous les articles
         const sale = await tx.sale.create({
@@ -112,7 +134,7 @@ export const createSale = async (req: AuthRequest, res: Response): Promise<void>
             where: { id: tableId },
             data: {
               status: 'LIBRE',
-              currentCart: null,
+              currentCart: Prisma.JsonNull,
             },
           });
         }

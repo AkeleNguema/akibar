@@ -9,10 +9,13 @@ generator client {
 
 //  Table des Bars / Établissements
 model Bar {
-  id        String   @id // ex: "REG45bar"
-  nomBar    String
-  pinHash   String   // PIN à 4 chiffres haché
-  createdAt DateTime @default(now())
+  id                  String   @id // ex: "REG45bar"
+  nomBar              String
+  pinHash             String   // PIN à 4 chiffres haché (GERANT)
+  pinProprietaireHash String?  // PIN à 4 chiffres haché (PROPRIETAIRE)
+  pinServeurHash      String?  // PIN à 4 chiffres haché (SERVEUR)
+  status              String   @default("ACTIVE") // ACTIVE, INACTIVE, ARCHIVED
+  createdAt           DateTime @default(now())
 
   products       Product[]
   stocks         Stock[]
@@ -67,6 +70,7 @@ model Sale {
   syncId       String?    @unique // Clé d'idempotence PWA
   tableId      String?
   createdAt    DateTime   @default(now())
+  paidAt       DateTime?  // Date de paiement de l'ardoise
 
   bar          Bar        @relation(fields: [barId], references: [id], onDelete: Cascade)
   table        Table?     @relation(fields: [tableId], references: [id], onDelete: SetNull)

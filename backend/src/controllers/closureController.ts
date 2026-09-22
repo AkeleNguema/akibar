@@ -14,7 +14,14 @@ export const getDailySummary = async (req: AuthRequest, res: Response) => {
     startOfDay.setHours(0, 0, 0, 0);
 
     const cashSalesAgg = await prisma.sale.aggregate({
-      where: { barId, createdAt: { gte: startOfDay }, paymentMode: "ESPECES" },
+      where: { 
+        barId, 
+        paymentMode: "ESPECES",
+        OR: [
+          { createdAt: { gte: startOfDay } },
+          { paidAt: { gte: startOfDay } }
+        ]
+      },
       _sum: { totalAmount: true }
     });
 
@@ -76,7 +83,14 @@ export const createClosure = async (req: AuthRequest, res: Response) => {
     startOfDay.setHours(0, 0, 0, 0);
 
     const cashSalesAgg = await prisma.sale.aggregate({
-      where: { barId, createdAt: { gte: startOfDay }, paymentMode: "ESPECES" },
+      where: { 
+        barId, 
+        paymentMode: "ESPECES",
+        OR: [
+          { createdAt: { gte: startOfDay } },
+          { paidAt: { gte: startOfDay } }
+        ]
+      },
       _sum: { totalAmount: true }
     });
 
@@ -126,7 +140,14 @@ export const getDailyDetails = async (req: AuthRequest, res: Response) => {
     startOfDay.setHours(0, 0, 0, 0);
 
     const cashSales = await prisma.sale.findMany({
-      where: { barId, createdAt: { gte: startOfDay }, paymentMode: "ESPECES" },
+      where: { 
+        barId, 
+        paymentMode: "ESPECES",
+        OR: [
+          { createdAt: { gte: startOfDay } },
+          { paidAt: { gte: startOfDay } }
+        ]
+      },
       include: { items: { include: { product: true } } },
       orderBy: { createdAt: 'desc' }
     });

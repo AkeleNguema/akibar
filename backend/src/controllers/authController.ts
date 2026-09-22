@@ -23,14 +23,30 @@ export const loginBar = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const isMatch = await bcrypt.compare(pin, bar.pinHash);
+    let role = 'GERANT';
+    let isMatch = await bcrypt.compare(pin, bar.pinHash);
+
+    if (!isMatch && bar.pinProprietaireHash) {
+      isMatch = await bcrypt.compare(pin, bar.pinProprietaireHash);
+      if (isMatch) {
+        role = 'PROPRIETAIRE';
+      }
+    }
+
+    if (!isMatch && bar.pinServeurHash) {
+      isMatch = await bcrypt.compare(pin, bar.pinServeurHash);
+      if (isMatch) {
+        role = 'SERVEUR';
+      }
+    }
+
     if (!isMatch) {
       res.status(401).json({ error: 'Code PIN incorrect.' });
       return;
     }
 
-    // Génération du token JWT contenant l'ID du bar
-    const token = jwt.sign({ barId: bar.id, nomBar: bar.nomBar }, JWT_SECRET, {
+    // Génération du token JWT contenant l'ID du bar et le rôle
+    const token = jwt.sign({ barId: bar.id, nomBar: bar.nomBar, role }, JWT_SECRET, {
       expiresIn: '7d',
     });
 
@@ -40,10 +56,24 @@ export const loginBar = async (req: Request, res: Response): Promise<void> => {
       bar: {
         id: bar.id,
         nomBar: bar.nomBar,
+        role,
       },
     });
-  } catch (error) {
-    console.error('Erreur lors de la connexion:', error);
+  } catch (error: any) {
+    console.error('Login error:', error.message, error.stack);
     res.status(500).json({ error: 'Erreur serveur lors de la connexion.' });
+  }
+};
+
+export const loginSuperAdmin = async (req: Request, res: Response): Promise<void> => {
+  const { username, password } = req.body;
+  const adminUser = process.env.SUPER_ADMIN_USER;
+  const adminPass = process.env.SUPER_ADMIN_PASS;
+
+  if (adminUser && adminPass && username === adminUser && password === adminPass) {
+    const token = jwt.sign({ role: 'SUPER_ADMIN' }, JWT_SECRET, { expiresIn: '1d' });
+    res.json({ message: 'Connexion Super Admin réussie', token, user: { role: 'SUPER_ADMIN' } });
+  } else {
+    res.status(401).json({ error: 'Identifiants Super Admin incorrects.' });
   }
 };
