@@ -12,6 +12,11 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  
+  const assistanceBarId = localStorage.getItem('assistanceBarId');
+  if (assistanceBarId) {
+    config.headers['X-Assistance-Bar-Id'] = assistanceBarId;
+  }
   return config;
 });
 

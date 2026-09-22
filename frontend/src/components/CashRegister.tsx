@@ -22,6 +22,7 @@ export const CashRegister: React.FC = () => {
   const [montantRecu, setMontantRecu] = useState<number | ''>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [saleType, setSaleType] = useState<'VENTE' | 'PERTE' | 'CASSE' | 'OFFERT'>('VENTE');
 
   const [showTables, setShowTables] = useState<boolean>(false);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
@@ -109,8 +110,9 @@ export const CashRegister: React.FC = () => {
           items: cart.map((item) => ({
             productId: item.product.id,
             quantite: item.quantite,
+            typeVente: saleType,
           })),
-          totalAmount,
+          totalAmount: saleType === 'VENTE' ? totalAmount : 0,
           paymentMode,
           nomClient: paymentMode === 'ARDOISE' ? nomClient.trim() : undefined,
           syncId,
@@ -124,6 +126,7 @@ export const CashRegister: React.FC = () => {
             syncId: crypto.randomUUID(), // Clé unique pour chaque item hors ligne
             productId: item.product.id,
             quantite: item.quantite,
+            typeVente: saleType,
             paymentMode,
             nomClient: paymentMode === 'ARDOISE' ? nomClient.trim() : undefined,
           });
@@ -204,6 +207,8 @@ export const CashRegister: React.FC = () => {
                 className={`product-btn-card ${isOutOfStock ? 'out-of-stock' : ''}`}
                 onClick={() => addToCart(product)}
                 disabled={isOutOfStock}
+                aria-label={`Ajouter ${product.nom} au panier. Prix: ${product.prixVenteBouteille} FCFA`}
+                role="button"
               >
                 <div className="p-name">{product.nom}</div>
                 <div className="p-price">{(product.prixVenteBouteille || 0).toLocaleString('fr-FR')} FCFA</div>
@@ -252,10 +257,10 @@ export const CashRegister: React.FC = () => {
                 <small>{((item.product.prixVenteBouteille || 0) * item.quantite).toLocaleString('fr-FR')} FCFA</small>
               </div>
               <div className="cart-item-actions">
-                <button type="button" className="btn-qty" onClick={() => updateQuantity(item.product.id, -1)}>-</button>
-                <span style={{ color: '#fff', fontWeight: 700 }}>{item.quantite}</span>
-                <button type="button" className="btn-qty" onClick={() => updateQuantity(item.product.id, 1)}>+</button>
-                <button type="button" className="btn-remove" onClick={() => removeItem(item.product.id)}>✕</button>
+                <button type="button" className="btn-qty" onClick={() => updateQuantity(item.product.id, -1)} aria-label="Diminuer la quantité">-</button>
+                <span style={{ color: '#fff', fontWeight: 700 }} aria-live="polite">{item.quantite}</span>
+                <button type="button" className="btn-qty" onClick={() => updateQuantity(item.product.id, 1)} aria-label="Augmenter la quantité">+</button>
+                <button type="button" className="btn-remove" onClick={() => removeItem(item.product.id)} aria-label="Supprimer du panier">✕</button>
               </div>
             </div>
           ))}
@@ -275,6 +280,17 @@ export const CashRegister: React.FC = () => {
               <option value="AIRTEL_MONEY">Airtel Money</option>
               <option value="MOOV_MONEY">Moov Money</option>
               <option value="ARDOISE">Ardoise (Crédit)</option>
+            </select>
+          </div>
+
+          <div className="pay-group">
+            <label>Type d'opération</label>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <select value={saleType} onChange={(e) => setSaleType(e.target.value as any)}>
+              <option value="VENTE">Vente Normale</option>
+              <option value="PERTE">Perte</option>
+              <option value="CASSE">Casse</option>
+              <option value="OFFERT">Offert (Gratuit)</option>
             </select>
           </div>
 

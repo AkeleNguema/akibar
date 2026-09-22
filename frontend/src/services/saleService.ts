@@ -11,6 +11,7 @@ export interface CreateSalePayload {
   paymentMode: 'ESPECES' | 'AIRTEL_MONEY' | 'MOOV_MONEY' | 'ARDOISE';
   nomClient?: string;
   syncId?: string; // Optionnel pour l'idempotence
+  tableId?: string;
 }
 
 export const createSale = async (payload: CreateSalePayload) => {

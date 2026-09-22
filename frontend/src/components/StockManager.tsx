@@ -1,12 +1,16 @@
 import { getProducts, supplyStock } from '../services/stockService';
+import { getConsignes, createConsigne, updateConsigneStatut } from '../services/consigneService';
 import React, { useEffect, useState } from 'react';
 import '../styles/stock.css';
 
 export const StockManager: React.FC = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [products, setProducts] = useState<any[]>([]);
+  const [consignes, setConsignes] = useState<any[]>([]);
   const [selectedProductId, setSelectedProductId] = useState<string>('');
   const [casiersCount, setCasiersCount] = useState<number | ''>('');
+  const [consigneNom, setConsigneNom] = useState<string>('');
+  const [consigneCasiers, setConsigneCasiers] = useState<number | ''>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
@@ -18,9 +22,11 @@ export const StockManager: React.FC = () => {
       if (list.length > 0 && !selectedProductId) {
         setSelectedProductId(list[0].id);
       }
+      const consigneData = await getConsignes();
+      setConsignes(Array.isArray(consigneData) ? consigneData : []);
     } catch (err) {
-      console.error('Erreur chargement stock:', err);
-      setMessage({ text: 'Impossible de charger le stock.', type: 'error' });
+      console.error('Erreur chargement stock/consignes:', err);
+      setMessage({ text: 'Impossible de charger les données.', type: 'error' });
     }
   };
 
@@ -58,6 +64,34 @@ export const StockManager: React.FC = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleConsigneSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!consigneNom || !consigneCasiers || Number(consigneCasiers) <= 0) return;
+
+    setLoading(true);
+    try {
+      await createConsigne({ nomClient: consigneNom, nombreCasiers: Number(consigneCasiers) });
+      setMessage({ text: 'Consigne enregistrée !', type: 'success' });
+      setConsigneNom('');
+      setConsigneCasiers('');
+      await fetchProductsList();
+    } catch (err) {
+      setMessage({ text: 'Erreur lors de la création de la consigne.', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatutConsigne = async (id: string, currentStatut: string) => {
+    try {
+      const newStatut = currentStatut === 'EN_COURS' ? 'RESTITUE' : 'EN_COURS';
+      await updateConsigneStatut(id, newStatut);
+      await fetchProductsList();
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -153,6 +187,58 @@ export const StockManager: React.FC = () => {
                     Aucun produit enregistré.
                   </td>
                 </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="stock-card">
+        <h3>Gestion des Consignes / Casiers</h3>
+        <form onSubmit={handleConsigneSubmit} className="stock-form" style={{ marginBottom: '20px' }}>
+          <div className="form-group">
+            <label>Nom Livreur / Client</label>
+            <input type="text" placeholder="Ex: Livreur Sobraga" className="form-input-stock" value={consigneNom} onChange={(e) => setConsigneNom(e.target.value)} required />
+          </div>
+          <div className="form-group">
+            <label>Nombre de Casiers</label>
+            <input type="number" min="1" className="form-input-stock" value={consigneCasiers} onChange={(e) => setConsigneCasiers(e.target.value === '' ? '' : Number(e.target.value))} required />
+          </div>
+          <button type="submit" className="submit-stock-btn" disabled={loading}>
+            {loading ? 'En cours...' : 'Ajouter Consigne'}
+          </button>
+        </form>
+        <div className="stock-table-container">
+          <table className="stock-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Nom</th>
+                <th>Casiers</th>
+                <th>Statut</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {consignes.map((c) => (
+                <tr key={c.id}>
+                  <td>{new Date(c.createdAt).toLocaleDateString('fr-FR')}</td>
+                  <td>{c.nomClient}</td>
+                  <td>{c.nombreCasiers} casiers</td>
+                  <td>
+                    <span style={{ padding: '4px 8px', borderRadius: '4px', background: c.statut === 'EN_COURS' ? '#fef3c7' : '#dcfce7', color: c.statut === 'EN_COURS' ? '#b45309' : '#166534' }}>
+                      {c.statut === 'EN_COURS' ? 'En cours' : 'Restitué'}
+                    </span>
+                  </td>
+                  <td>
+                    <button type="button" onClick={() => handleStatutConsigne(c.id, c.statut)} style={{ padding: '5px 10px', cursor: 'pointer', border: '1px solid #ccc', borderRadius: '4px' }}>
+                      Changer
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {consignes.length === 0 && (
+                <tr><td colSpan={5} style={{textAlign:'center', color:'#94a3b8'}}>Aucune consigne.</td></tr>
               )}
             </tbody>
           </table>

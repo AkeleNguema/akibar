@@ -1,5 +1,12 @@
 import api from './api';
 
+export interface DebtItem {
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+}
+
 export interface Debt {
   id: string;
   customerName: string;
@@ -8,6 +15,7 @@ export interface Debt {
   status: 'UNPAID' | 'PARTIAL' | 'PAID';
   notes?: string;
   createdAt: string;
+  items?: DebtItem[];
 }
 
 export const getDebts = async (): Promise<Debt[]> => {

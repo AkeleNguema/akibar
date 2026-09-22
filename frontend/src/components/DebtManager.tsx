@@ -1,15 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { getDebts, createDebt, payDebt, type Debt } from '../services/debtService';
+import React, { useState, useEffect } from 'react';
+import { getDebts, payDebt, type Debt } from '../services/debtService';
 import '../styles/debt.css';
 
 export const DebtManager: React.FC = () => {
   const [debts, setDebts] = useState<Debt[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-
-  // Champs de création d'ardoise
-  const [customerName, setCustomerName] = useState('');
-  const [amount, setAmount] = useState('');
-  const [notes, setNotes] = useState('');
 
   // Champs de règlement rapide
   const [selectedDebtId, setSelectedDebtId] = useState<string | null>(null);
@@ -32,30 +27,13 @@ export const DebtManager: React.FC = () => {
     fetchDebts();
   }, []);
 
-  const handleCreateDebt = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!customerName || !amount) return;
-
-    try {
-      await createDebt({
-        customerName,
-        amount: parseFloat(amount),
-        notes,
-      });
-      setCustomerName('');
-      setAmount('');
-      setNotes('');
-      fetchDebts();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      alert("Erreur lors de la création de l'ardoise : " + (error.response?.data?.message || error.message));
-    }
-  };
-
   const handlePayDebt = async (debtId: string) => {
     if (!paymentAmount || parseFloat(paymentAmount) <= 0) return;
 
     try {
+      // Pass paymentMode along if payDebt allows it, but currently payDebt in debtService doesn't accept it, I'll update it later if needed, wait, payDebt in controller accepts paymentMode.
+      // Actually let's just keep the existing behavior or add it. I'll pass it just in case.
+      // Wait, in debtService.ts payDebt only accepts amountPaid. Let's stick to amountPaid for now.
       await payDebt(debtId, parseFloat(paymentAmount));
       setSelectedDebtId(null);
       setPaymentAmount('');
@@ -69,34 +47,9 @@ export const DebtManager: React.FC = () => {
   return (
     <div className="debt-container">
       <h1>📋 Gestion des Ardoises Clients</h1>
-
-      {/* Formulaire de création d'ardoise */}
-      <div className="debt-form-card">
-        <h3>Ajouter une Ardoise</h3>
-        <form className="debt-form" onSubmit={handleCreateDebt}>
-          <input
-            type="text"
-            placeholder="Nom du client"
-            value={customerName}
-            onChange={(e) => setCustomerName(e.target.value)}
-            required
-          />
-          <input
-            type="number"
-            placeholder="Montant (FCFA)"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            required
-          />
-          <input
-            type="text"
-            placeholder="Note (optionnel)"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-          />
-          <button type="submit">Enregistrer</button>
-        </form>
-      </div>
+      <p style={{ color: '#94a3b8', marginBottom: '20px' }}>
+        Note : Les ardoises sont désormais créées directement depuis la caisse en sélectionnant le mode de paiement "Ardoise".
+      </p>
 
       {/* Liste des ardoises */}
       <div>
@@ -130,6 +83,33 @@ export const DebtManager: React.FC = () => {
                     )}
                   </div>
                 </div>
+
+                {/* Détails du ticket / boissons */}
+                {debt.items && debt.items.length > 0 && (
+                  <div style={{ marginTop: '15px', padding: '10px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+                    <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: '#cbd5e1' }}>Détails du ticket :</h4>
+                    <table style={{ width: '100%', fontSize: '0.85rem', textAlign: 'left' }}>
+                      <thead>
+                        <tr style={{ color: '#94a3b8' }}>
+                          <th style={{ paddingBottom: '5px' }}>Produit</th>
+                          <th style={{ paddingBottom: '5px' }}>Qté</th>
+                          <th style={{ paddingBottom: '5px' }}>P.U.</th>
+                          <th style={{ paddingBottom: '5px' }}>Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {debt.items.map((item, idx) => (
+                          <tr key={idx} style={{ borderTop: '1px solid #334155' }}>
+                            <td style={{ paddingTop: '5px' }}>{item.productName}</td>
+                            <td style={{ paddingTop: '5px' }}>{item.quantity}</td>
+                            <td style={{ paddingTop: '5px' }}>{item.unitPrice} FCFA</td>
+                            <td style={{ paddingTop: '5px' }}>{item.subtotal} FCFA</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
 
                 {selectedDebtId === debt.id && (
                   <div className="debt-pay-box">
