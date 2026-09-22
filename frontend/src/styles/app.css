@@ -11,6 +11,12 @@
   padding: 1rem 2rem;
   background-color: #1e232d;
   border-bottom: 1px solid #334155;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.header-left {
+  flex: 0 0 auto;
 }
 
 .app-title {
@@ -23,6 +29,9 @@
 .app-nav {
   display: flex;
   gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  flex: 1 1 auto;
 }
 
 .nav-btn {
@@ -45,6 +54,10 @@
   color: #000000;
 }
 
+.btn-closure {
+  /* Supprimé le margin-left pour laisser gérer par header-right */
+}
+
 .logout-btn {
   padding: 0.5rem 1rem;
   border-radius: 6px;
@@ -54,6 +67,13 @@
   cursor: pointer;
   font-weight: 600;
   transition: all 0.2s ease;
+}
+
+.header-right {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex: 0 0 auto;
 }
 
 .logout-btn:hover {
@@ -69,4 +89,99 @@
   text-align: center;
   color: #94a3b8;
   padding: 3rem 1rem;
+}
+
+/* Modale de Confirmation */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #1e293b;
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  color: #f8fafc;
+}
+
+.modal-content p {
+  color: #cbd5e1;
+  margin-bottom: 25px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.modal-actions button {
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-cancel {
+  background: #334155;
+  color: white;
+}
+
+.btn-cancel:hover { background: #475569; }
+
+.btn-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-danger:hover { background: #dc2626; }
+
+/* Responsive Globale */
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem;
+  }
+  
+  .app-nav {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav-btn {
+    white-space: nowrap;
+  }
+
+  .logout-btn {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 10px;
+  }
+  
+  .btn-closure {
+    margin-left: 0;
+  }
+
+  .app-main {
+    padding: 1rem;
+  }
 }

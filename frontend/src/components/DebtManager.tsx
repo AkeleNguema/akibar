@@ -31,9 +31,6 @@ export const DebtManager: React.FC = () => {
     if (!paymentAmount || parseFloat(paymentAmount) <= 0) return;
 
     try {
-      // Pass paymentMode along if payDebt allows it, but currently payDebt in debtService doesn't accept it, I'll update it later if needed, wait, payDebt in controller accepts paymentMode.
-      // Actually let's just keep the existing behavior or add it. I'll pass it just in case.
-      // Wait, in debtService.ts payDebt only accepts amountPaid. Let's stick to amountPaid for now.
       await payDebt(debtId, parseFloat(paymentAmount));
       setSelectedDebtId(null);
       setPaymentAmount('');
@@ -44,89 +41,103 @@ export const DebtManager: React.FC = () => {
     }
   };
 
+  const getStatusClass = (status: string) => {
+    if (status === 'PAID') return 'paid';
+    if (status === 'PARTIAL') return 'partial';
+    return 'unpaid';
+  };
+
+  const getStatusLabel = (status: string) => {
+    if (status === 'PAID') return 'Payé';
+    if (status === 'PARTIAL') return 'Partiel';
+    return 'Non payé';
+  };
+
   return (
     <div className="debt-container">
-      <h1>📋 Gestion des Ardoises Clients</h1>
-      <p style={{ color: '#94a3b8', marginBottom: '20px' }}>
-        Note : Les ardoises sont désormais créées directement depuis la caisse en sélectionnant le mode de paiement "Ardoise".
+      <h1>📋 Ardoises Clients</h1>
+      <p className="debt-notice">
+        Retrouvez ici toutes les consommations mises en attente de paiement (crédits).
       </p>
 
-      {/* Liste des ardoises */}
-      <div>
-        <h3>Liste des Ardoises</h3>
-        {loading ? (
-          <p>Chargement...</p>
-        ) : debts.length === 0 ? (
-          <p>Aucune ardoise en cours.</p>
-        ) : (
-          <ul className="debt-list">
-            {debts.map((debt) => (
-              <li key={debt.id} className="debt-item">
-                <div className="debt-header">
-                  <div>
-                    <div className="debt-customer">{debt.customerName}</div>
-                    <div className="debt-amounts">
-                      Reste : <span className="debt-remaining">{debt.remainingAmount} FCFA</span> / Total : {debt.amount} FCFA
-                    </div>
-                    {debt.notes && <small style={{ color: '#aaa' }}>Note : {debt.notes}</small>}
-                  </div>
+      {loading ? (
+        <p>Chargement...</p>
+      ) : debts.length === 0 ? (
+        <p className="debt-notice" style={{ fontStyle: 'italic' }}>Aucune ardoise en cours.</p>
+      ) : (
+        <ul className="debt-list">
+          {debts.map((debt) => (
+            <li key={debt.id} className={`debt-item ${getStatusClass(debt.status)}`}>
+              <div className="debt-header">
+                <div>
+                  <div className="debt-customer">{debt.customerName}</div>
+                  <div className="debt-date">{new Date(debt.date).toLocaleDateString()}</div>
+                </div>
+                <span className={`debt-badge ${getStatusClass(debt.status)}`}>
+                  {getStatusLabel(debt.status)}
+                </span>
+              </div>
 
-                  <div className="debt-actions" style={{ display: 'flex', alignItems: 'center' }}>
-                    <span className={`debt-badge ${debt.status.toLowerCase()}`}>
-                      {debt.status === 'PAID' ? 'Payé' : debt.status === 'PARTIAL' ? 'Partiel' : 'Non payé'}
-                    </span>
+              <div className="debt-amounts">
+                <div>Montant Initial : {debt.amount} FCFA</div>
+                <div className="debt-remaining">Reste à payer : {debt.remainingAmount} FCFA</div>
+                {debt.notes && <small style={{ color: '#aaa', display: 'block', marginTop: '5px' }}>Note : {debt.notes}</small>}
+              </div>
 
-                    {debt.status !== 'PAID' && (
-                      <button onClick={() => setSelectedDebtId(selectedDebtId === debt.id ? null : debt.id)}>
-                        Régler
-                      </button>
-                    )}
+              {/* Détails du ticket / boissons */}
+              {debt.items && debt.items.length > 0 && (
+                <div className="debt-details">
+                  <h4>Détails du ticket</h4>
+                  <table className="debt-details-table">
+                    <thead>
+                      <tr>
+                        <th>Produit</th>
+                        <th>Qté</th>
+                        <th>P.U.</th>
+                        <th>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {debt.items.map((item, idx) => (
+                        <tr key={idx}>
+                          <td>{item.productName}</td>
+                          <td>{item.quantity}</td>
+                          <td>{item.unitPrice}</td>
+                          <td>{item.subtotal}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {debt.status !== 'PAID' && selectedDebtId !== debt.id && (
+                <button 
+                  className="debt-pay-btn"
+                  onClick={() => { setSelectedDebtId(debt.id); setPaymentAmount(debt.remainingAmount.toString()); }}
+                >
+                  Régler l'ardoise
+                </button>
+              )}
+
+              {selectedDebtId === debt.id && (
+                <div className="debt-pay-box">
+                  <input
+                    type="number"
+                    placeholder="Montant payé (FCFA)"
+                    value={paymentAmount}
+                    onChange={(e) => setPaymentAmount(e.target.value)}
+                  />
+                  <div className="debt-pay-actions">
+                    <button className="btn-confirm-pay" onClick={() => handlePayDebt(debt.id)}>Valider le paiement</button>
+                    <button className="btn-cancel-pay" onClick={() => setSelectedDebtId(null)}>Annuler</button>
                   </div>
                 </div>
-
-                {/* Détails du ticket / boissons */}
-                {debt.items && debt.items.length > 0 && (
-                  <div style={{ marginTop: '15px', padding: '10px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
-                    <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: '#cbd5e1' }}>Détails du ticket :</h4>
-                    <table style={{ width: '100%', fontSize: '0.85rem', textAlign: 'left' }}>
-                      <thead>
-                        <tr style={{ color: '#94a3b8' }}>
-                          <th style={{ paddingBottom: '5px' }}>Produit</th>
-                          <th style={{ paddingBottom: '5px' }}>Qté</th>
-                          <th style={{ paddingBottom: '5px' }}>P.U.</th>
-                          <th style={{ paddingBottom: '5px' }}>Total</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {debt.items.map((item, idx) => (
-                          <tr key={idx} style={{ borderTop: '1px solid #334155' }}>
-                            <td style={{ paddingTop: '5px' }}>{item.productName}</td>
-                            <td style={{ paddingTop: '5px' }}>{item.quantity}</td>
-                            <td style={{ paddingTop: '5px' }}>{item.unitPrice} FCFA</td>
-                            <td style={{ paddingTop: '5px' }}>{item.subtotal} FCFA</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {selectedDebtId === debt.id && (
-                  <div className="debt-pay-box">
-                    <input
-                      type="number"
-                      placeholder="Montant payé"
-                      value={paymentAmount}
-                      onChange={(e) => setPaymentAmount(e.target.value)}
-                    />
-                    <button onClick={() => handlePayDebt(debt.id)}>Valider</button>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };

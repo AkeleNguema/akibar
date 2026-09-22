@@ -12,6 +12,7 @@ export interface CreateSalePayload {
   nomClient?: string;
   syncId?: string; // Optionnel pour l'idempotence
   tableId?: string;
+  consigneCasiers?: number;
 }
 
 export const createSale = async (payload: CreateSalePayload) => {

@@ -34,3 +34,12 @@ export const getDailyDetails = async (): Promise<DailyDetails> => {
   const response = await api.get('/api/closures/daily-details');
   return response.data;
 };
+
+export const getFinancialReport = async (startDate?: string, endDate?: string): Promise<any> => {
+  const params = new URLSearchParams();
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
+  
+  const response = await api.get(`/api/closures/report?${params.toString()}`);
+  return response.data;
+};

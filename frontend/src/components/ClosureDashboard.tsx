@@ -8,6 +8,7 @@ export const ClosureDashboard: React.FC = () => {
   const [comments, setComments] = useState('');
   const [loading, setLoading] = useState(false);
   const [isClosed, setIsClosed] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const loadReport = async () => {
     try {
@@ -27,8 +28,13 @@ export const ClosureDashboard: React.FC = () => {
     loadReport();
   }, []);
 
-  const handleValidate = async () => {
+  const handleValidateClick = () => {
     if (!actualCash) return;
+    setShowConfirmModal(true);
+  };
+
+  const confirmValidation = async () => {
+    setShowConfirmModal(false);
     try {
       await validateClosure({
         actualCash: parseFloat(actualCash),
@@ -93,7 +99,7 @@ export const ClosureDashboard: React.FC = () => {
               style={{ width: '80%' }}
             />
           </div>
-          <button className="btn-validate-closure" onClick={handleValidate}>
+          <button className="btn-validate-closure" onClick={handleValidateClick}>
             Clôturer la journée
           </button>
         </div>
@@ -101,6 +107,20 @@ export const ClosureDashboard: React.FC = () => {
         <div className="closure-action" style={{ background: 'rgba(16, 185, 129, 0.1)' }}>
           <h3 style={{ color: '#4ade80' }}>Journée clôturée !</h3>
           <p>Le rapport a été enregistré avec succès.</p>
+        </div>
+      )}
+
+      {/* Modale de confirmation de clôture */}
+      {showConfirmModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Confirmer la clôture</h3>
+            <p>Êtes-vous sûr de vouloir clôturer la journée ? Cette action est irréversible.</p>
+            <div className="modal-actions">
+              <button className="btn-cancel" onClick={() => setShowConfirmModal(false)}>Annuler</button>
+              <button className="btn-danger" onClick={confirmValidation}>Confirmer</button>
+            </div>
+          </div>
         </div>
       )}
     </div>

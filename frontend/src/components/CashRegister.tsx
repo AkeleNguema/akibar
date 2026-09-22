@@ -23,6 +23,7 @@ export const CashRegister: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [saleType, setSaleType] = useState<'VENTE' | 'PERTE' | 'CASSE' | 'OFFERT'>('VENTE');
+  const [consigneCasiers, setConsigneCasiers] = useState<number | ''>('');
 
   const [showTables, setShowTables] = useState<boolean>(false);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
@@ -83,7 +84,7 @@ export const CashRegister: React.FC = () => {
   const totalAmount = cart.reduce(
     (sum, item) => sum + (item.product.prixVenteBouteille || 0) * item.quantite,
     0
-  );
+  ) + (typeof consigneCasiers === 'number' ? consigneCasiers * 2000 : 0);
 
   const monnaie = typeof montantRecu === 'number' && montantRecu >= totalAmount ? montantRecu - totalAmount : 0;
 
@@ -92,6 +93,11 @@ export const CashRegister: React.FC = () => {
 
     if (paymentMode === 'ARDOISE' && !nomClient.trim()) {
       setMessage({ text: 'Nom du client requis pour une ardoise.', type: 'error' });
+      return;
+    }
+
+    if (consigneCasiers !== '' && consigneCasiers > 0 && !nomClient.trim()) {
+      setMessage({ text: 'Nom du client requis pour enregistrer une consigne.', type: 'error' });
       return;
     }
 
@@ -114,9 +120,10 @@ export const CashRegister: React.FC = () => {
           })),
           totalAmount: saleType === 'VENTE' ? totalAmount : 0,
           paymentMode,
-          nomClient: paymentMode === 'ARDOISE' ? nomClient.trim() : undefined,
+          nomClient: (paymentMode === 'ARDOISE' || (typeof consigneCasiers === 'number' && consigneCasiers > 0)) ? nomClient.trim() : undefined,
           syncId,
           tableId: selectedTable?.id,
+          consigneCasiers: typeof consigneCasiers === 'number' ? consigneCasiers : 0,
         });
         setMessage({ text: 'Vente encaissee avec succès !', type: 'success' });
       } else {
@@ -137,6 +144,7 @@ export const CashRegister: React.FC = () => {
       setCart([]);
       setMontantRecu('');
       setNomClient('');
+      setConsigneCasiers('');
       await loadCatalog();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
@@ -294,9 +302,20 @@ export const CashRegister: React.FC = () => {
             </select>
           </div>
 
-          {paymentMode === 'ARDOISE' ? (
+          <div className="pay-group">
+            <label>Consigner des casiers (2000 F/U)</label>
+            <input
+              type="number"
+              placeholder="0"
+              value={consigneCasiers}
+              onChange={(e) => setConsigneCasiers(e.target.value === '' ? '' : Number(e.target.value))}
+              min="0"
+            />
+          </div>
+
+          {(paymentMode === 'ARDOISE' || (typeof consigneCasiers === 'number' && consigneCasiers > 0)) ? (
             <div className="pay-group">
-              <label>Nom du client</label>
+              <label>Nom du client {typeof consigneCasiers === 'number' && consigneCasiers > 0 && <span style={{color: '#f59e0b'}}>(Requis pour la consigne)</span>}</label>
               <input
                 type="text"
                 placeholder="Ex : M. Ondo"

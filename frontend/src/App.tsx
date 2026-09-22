@@ -7,23 +7,28 @@ import { CashRegister } from './components/CashRegister';
 import { ExpenseManager } from './components/ExpenseManager';
 import { ClosureDashboard } from './components/ClosureDashboard';
 import { Dashboard } from './components/Dashboard';
+import { FinancialReport } from './components/FinancialReport';
 import { SuperAdminDashboard } from './components/SuperAdminDashboard';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { TermsOfService } from './components/TermsOfService';
 import CookieConsent from 'react-cookie-consent';
 import { getStoredToken, logoutBar, getUserRole } from './services/authService';
 import { initSyncListeners, isOnline } from './services/syncService';
+import { OwnerDashboard } from './components/OwnerDashboard';
 import './styles/app.css';
-type TabType = 'dashboard' | 'caisse' | 'stock' | 'ardoises' | 'depenses' | 'cloture';
+type TabType = 'dashboard' | 'ownerDashboard' | 'caisse' | 'stock' | 'ardoises' | 'depenses' | 'cloture' | 'rapports';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     return Boolean(getStoredToken());
   });
   const [userRole, setUserRole] = useState<string | null>(() => getUserRole());
-  const [activeTab, setActiveTab] = useState<TabType>('caisse');
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    return getUserRole() === 'PROPRIETAIRE' ? 'ownerDashboard' : 'caisse';
+  });
   const [onlineStatus, setOnlineStatus] = useState<boolean>(isOnline());
   const [publicPage, setPublicPage] = useState<'home' | 'login' | 'privacy' | 'terms'>('home');
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     const cleanup = initSyncListeners((status) => {
@@ -62,11 +67,15 @@ function App() {
         )}
         {publicPage === 'login' && (
           <div>
-            <Login onLoginSuccess={(role) => {
+          <Login 
+            onBack={() => setPublicPage('home')}
+            onLoginSuccess={(role) => {
               setIsAuthenticated(true);
-              if (role) setUserRole(role);
-              else setUserRole(getUserRole());
-            }} />
+              const newRole = role || getUserRole();
+              if (newRole) setUserRole(newRole);
+              setActiveTab(newRole === 'PROPRIETAIRE' ? 'ownerDashboard' : 'caisse');
+            }} 
+          />
             <div style={{ textAlign: 'center', padding: '1rem', marginTop: '2rem' }}>
               <button onClick={() => setPublicPage('privacy')} style={{ background: 'none', border: 'none', color: '#6366f1', textDecoration: 'underline', cursor: 'pointer', marginRight: '1rem' }}>Politique de Confidentialité</button>
               <button onClick={() => setPublicPage('terms')} style={{ background: 'none', border: 'none', color: '#6366f1', textDecoration: 'underline', cursor: 'pointer' }}>Conditions d'Utilisation</button>
@@ -118,7 +127,9 @@ function App() {
         </div>
       )}
       <header className="app-header">
-        <h2 className="app-title">🍺 Akibar {userRole === 'PROPRIETAIRE' && <span style={{fontSize: '0.8rem', color: '#f59e0b', marginLeft: '10px'}}>(PROPRIÉTAIRE)</span>}</h2>
+        <div className="header-left">
+          <h2 className="app-title">🍺 Akibar {userRole === 'PROPRIETAIRE' && <span style={{fontSize: '0.8rem', color: '#f59e0b', marginLeft: '10px'}}>(PROPRIÉTAIRE)</span>}</h2>
+        </div>
 
         <nav className="app-nav">
           <button
@@ -131,13 +142,32 @@ function App() {
           
           {userRole !== 'SERVEUR' && (
             <>
-              <button
-                type="button"
-                className={`nav-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
-                onClick={() => setActiveTab('dashboard')}
-              >
-                Dashboard
-              </button>
+              {userRole === 'PROPRIETAIRE' ? (
+                <button
+                  type="button"
+                  className={`nav-btn ${activeTab === 'ownerDashboard' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('ownerDashboard')}
+                >
+                  Mon Dashboard
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className={`nav-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('dashboard')}
+                >
+                  Dashboard
+                </button>
+              )}
+              {(userRole === 'ADMIN' || userRole === 'GERANT' || userRole === 'PROPRIETAIRE' || userRole === 'SUPER_ADMIN') && (
+                <button
+                  type="button"
+                  className={`nav-btn ${activeTab === 'rapports' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('rapports')}
+                >
+                  Rapports Financiers
+                </button>
+              )}
               <button
                 type="button"
                 className={`nav-btn ${activeTab === 'stock' ? 'active' : ''}`}
@@ -159,24 +189,44 @@ function App() {
               >
                 Dépenses
               </button>
-              <button
-                type="button"
-                className={`nav-btn ${activeTab === 'cloture' ? 'active' : ''}`}
-                onClick={() => setActiveTab('cloture')}
-              >
-                Clôture
-              </button>
             </>
           )}
         </nav>
 
-        <button type="button" className="logout-btn" onClick={handleLogout}>
-          Déconnexion
-        </button>
+        <div className="header-right">
+          {userRole !== 'SERVEUR' && (
+            <button
+              type="button"
+              className={`nav-btn btn-closure ${activeTab === 'cloture' ? 'active' : ''}`}
+              onClick={() => setActiveTab('cloture')}
+            >
+              Clôture
+            </button>
+          )}
+          <button type="button" className="logout-btn" onClick={() => setShowLogoutConfirm(true)}>
+            Déconnexion
+          </button>
+        </div>
       </header>
+
+      {/* Modale de confirmation de déconnexion */}
+      {showLogoutConfirm && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Confirmer la déconnexion</h3>
+            <p>Êtes-vous sûr de vouloir vous déconnecter ?</p>
+            <div className="modal-actions">
+              <button className="btn-cancel" onClick={() => setShowLogoutConfirm(false)}>Annuler</button>
+              <button className="btn-danger" onClick={() => { setShowLogoutConfirm(false); handleLogout(); }}>Se déconnecter</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="app-main">
         {activeTab === 'dashboard' && <Dashboard onNavigate={setActiveTab} />}
+        {activeTab === 'ownerDashboard' && <OwnerDashboard />}
+        {activeTab === 'rapports' && <FinancialReport />}
         {activeTab === 'caisse' && <CashRegister />}
         {activeTab === 'stock' && <StockManager />}
         {activeTab === 'ardoises' && <DebtManager />}

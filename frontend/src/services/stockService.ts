@@ -40,3 +40,13 @@ export const supplyStock = async (payload: SupplyPayload) => {
   const response = await api.post('/api/stock/supply', payload);
   return response.data;
 };
+
+// Retour de casiers vides : route POST /api/stock/return-crates
+export const returnEmptyCrates = async (payload: { productId: string; nombreCasiers: number; rembourser?: boolean }) => {
+  const response = await api.post('/api/stock/return-crates', {
+    productId: payload.productId,
+    casiersRetournes: payload.nombreCasiers,
+    rembourser: payload.rembourser
+  });
+  return response.data;
+};

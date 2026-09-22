@@ -1,4 +1,4 @@
-import { getProducts, supplyStock } from '../services/stockService';
+import { getProducts, supplyStock, returnEmptyCrates } from '../services/stockService';
 import { getConsignes, createConsigne, updateConsigneStatut } from '../services/consigneService';
 import React, { useEffect, useState } from 'react';
 import '../styles/stock.css';
@@ -11,6 +11,11 @@ export const StockManager: React.FC = () => {
   const [casiersCount, setCasiersCount] = useState<number | ''>('');
   const [consigneNom, setConsigneNom] = useState<string>('');
   const [consigneCasiers, setConsigneCasiers] = useState<number | ''>('');
+  
+  const [returnProductId, setReturnProductId] = useState<string>('');
+  const [returnCount, setReturnCount] = useState<number | ''>('');
+  const [rembourser, setRembourser] = useState<boolean>(false);
+
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
@@ -21,6 +26,7 @@ export const StockManager: React.FC = () => {
       setProducts(list);
       if (list.length > 0 && !selectedProductId) {
         setSelectedProductId(list[0].id);
+        if (!returnProductId) setReturnProductId(list[0].id);
       }
       const consigneData = await getConsignes();
       setConsignes(Array.isArray(consigneData) ? consigneData : []);
@@ -85,6 +91,33 @@ export const StockManager: React.FC = () => {
     }
   };
 
+  const handleReturnCratesSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!returnProductId || !returnCount || Number(returnCount) <= 0) {
+      setMessage({ text: 'Veuillez saisir un nombre valide d\'emballages.', type: 'error' });
+      return;
+    }
+
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      await returnEmptyCrates({
+        productId: returnProductId,
+        nombreCasiers: Number(returnCount),
+        rembourser
+      });
+      setMessage({ text: 'Emballages retournés avec succès !', type: 'success' });
+      setReturnCount('');
+      setRembourser(false);
+      await fetchProductsList();
+    } catch (err: any) {
+      setMessage({ text: err.response?.data?.error || 'Erreur lors du retour d\'emballages.', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleStatutConsigne = async (id: string, currentStatut: string) => {
     try {
       const newStatut = currentStatut === 'EN_COURS' ? 'RESTITUE' : 'EN_COURS';
@@ -133,6 +166,57 @@ export const StockManager: React.FC = () => {
 
           <button type="submit" className="submit-stock-btn" disabled={loading}>
             {loading ? 'Ajout...' : 'Enregistrer'}
+          </button>
+        </form>
+      </div>
+
+      <div className="stock-card">
+        <h3>Retourner Emballages Vides</h3>
+        <form onSubmit={handleReturnCratesSubmit} className="stock-form">
+          <div className="form-group">
+            <label>Boisson / Casier Sobraga</label>
+            <select
+              className="form-select"
+              value={returnProductId}
+              onChange={(e) => setReturnProductId(e.target.value)}
+              required
+            >
+              {products.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nom}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>Nombre de Casiers Vides</label>
+            <input
+              type="number"
+              min="1"
+              placeholder="Ex : 5"
+              className="form-input-stock"
+              value={returnCount}
+              onChange={(e) => setReturnCount(e.target.value === '' ? '' : Number(e.target.value))}
+              required
+            />
+          </div>
+
+          <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <input
+              type="checkbox"
+              id="rembourser"
+              checked={rembourser}
+              onChange={(e) => setRembourser(e.target.checked)}
+              style={{ width: '20px', height: '20px' }}
+            />
+            <label htmlFor="rembourser" style={{ cursor: 'pointer', margin: 0, fontWeight: 'normal' }}>
+              Rembourser le client (2000 FCFA/casier)
+            </label>
+          </div>
+
+          <button type="submit" className="submit-stock-btn" disabled={loading} style={{ background: '#f59e0b', color: '#000' }}>
+            {loading ? 'En cours...' : 'Retourner Emballages'}
           </button>
         </form>
       </div>

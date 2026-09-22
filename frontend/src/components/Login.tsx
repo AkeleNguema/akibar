@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { loginBar, loginSuperAdmin } from '../services/authService';
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
 interface LoginProps {
   onLoginSuccess: (role?: string) => void;
+  onBack?: () => void;
 }
 
-export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
+export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [codeBar, setCodeBar] = useState('');
   const [pin, setPin] = useState('');
@@ -15,6 +17,8 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,9 +31,8 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         onLoginSuccess('SUPER_ADMIN');
       } else {
         await loginBar({ codeBar, pin });
-        onLoginSuccess('BAR'); // It could be GERANT or PROPRIETAIRE internally
+        onLoginSuccess('BAR'); // GERANT ou PROPRIETAIRE
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.response?.data?.error || 'Identifiants invalides ou serveur inaccessible.');
@@ -39,79 +42,108 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#121212', flexDirection: 'column' }}>
-      <div style={{ background: '#1e232d', padding: '2rem', borderRadius: '12px', width: '100%', maxWidth: '400px', color: '#fff', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>
-        <h2 style={{ textAlign: 'center', color: '#f59e0b', marginBottom: '1.5rem' }}>
-          {isAdminMode ? 'Administration Globale ⚙️' : 'Bienvenue sur AKIBAR 🍺'}
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#0f172a', flexDirection: 'column', position: 'relative' }}>
+      
+      {onBack && (
+        <button 
+          onClick={onBack}
+          style={{ position: 'absolute', top: '2rem', left: '2rem', background: 'transparent', border: 'none', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '1rem', fontWeight: 500 }}
+        >
+          <ArrowLeft size={20} />
+          Retour à l'accueil
+        </button>
+      )}
+
+      <div style={{ background: '#1e293b', padding: '2.5rem', borderRadius: '16px', width: '100%', maxWidth: '420px', color: '#f8fafc', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
+        <h2 style={{ textAlign: 'center', color: '#f59e0b', marginBottom: '2rem', fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.025em' }}>
+          {isAdminMode ? 'Administration' : 'Connexion AKIBAR'}
         </h2>
 
         {errorMsg && (
-          <div style={{ background: '#ef4444', color: '#fff', padding: '0.75rem', borderRadius: '6px', marginBottom: '1rem', textAlign: 'center', fontSize: '0.9rem' }}>
+          <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#f87171', padding: '0.875rem', borderRadius: '8px', marginBottom: '1.5rem', textAlign: 'center', fontSize: '0.875rem', fontWeight: 500 }}>
             {errorMsg}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           
           {!isAdminMode ? (
             <>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '0.5rem', color: '#cbd5e1' }}>
-                  Identifiant Établissement (ex: REG45bar)
+                <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: '#cbd5e1', fontWeight: 500 }}>
+                  Identifiant Établissement
                 </label>
                 <input
                   type="text"
-                  placeholder="REG45bar"
+                  placeholder="ex: REG45bar"
                   value={codeBar}
                   onChange={(e) => setCodeBar(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #334155', background: '#0f172a', color: '#fff' }}
+                  style={{ boxSizing: 'border-box', width: '100%', padding: '0.875rem 1rem', borderRadius: '8px', border: '1px solid #334155', background: '#0f172a', color: '#f8fafc', fontSize: '1rem', outline: 'none', transition: 'border-color 0.2s' }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '0.5rem', color: '#cbd5e1' }}>
-                  Code PIN (4 chiffres)
+                <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: '#cbd5e1', fontWeight: 500 }}>
+                  Code PIN
                 </label>
-                <input
-                  type="password"
-                  maxLength={4}
-                  placeholder="••••"
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value)}
-                  required
-                  style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #334155', background: '#0f172a', color: '#fff', textAlign: 'center', letterSpacing: '4px' }}
-                />
+                <div style={{ position: 'relative', width: '100%' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    maxLength={4}
+                    placeholder="••••"
+                    value={pin}
+                    onChange={(e) => setPin(e.target.value)}
+                    required
+                    style={{ boxSizing: 'border-box', width: '100%', padding: '0.875rem 3rem 0.875rem 1rem', borderRadius: '8px', border: '1px solid #334155', background: '#0f172a', color: '#f8fafc', fontSize: '1.25rem', letterSpacing: showPassword ? 'normal' : '0.25em', outline: 'none', transition: 'border-color 0.2s' }}
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', display: 'flex', padding: 0 }}
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
               </div>
             </>
           ) : (
             <>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '0.5rem', color: '#cbd5e1' }}>
-                  Utilisateur Admin
+                <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: '#cbd5e1', fontWeight: 500 }}>
+                  Utilisateur
                 </label>
                 <input
                   type="text"
-                  placeholder="Nom d'utilisateur"
+                  placeholder="Admin username"
                   value={adminUser}
                   onChange={(e) => setAdminUser(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #334155', background: '#0f172a', color: '#fff' }}
+                  style={{ boxSizing: 'border-box', width: '100%', padding: '0.875rem 1rem', borderRadius: '8px', border: '1px solid #334155', background: '#0f172a', color: '#f8fafc', fontSize: '1rem', outline: 'none' }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '0.5rem', color: '#cbd5e1' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: '#cbd5e1', fontWeight: 500 }}>
                   Mot de passe
                 </label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={adminPass}
-                  onChange={(e) => setAdminPass(e.target.value)}
-                  required
-                  style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #334155', background: '#0f172a', color: '#fff', textAlign: 'center' }}
-                />
+                <div style={{ position: 'relative', width: '100%' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={adminPass}
+                    onChange={(e) => setAdminPass(e.target.value)}
+                    required
+                    style={{ boxSizing: 'border-box', width: '100%', padding: '0.875rem 3rem 0.875rem 1rem', borderRadius: '8px', border: '1px solid #334155', background: '#0f172a', color: '#f8fafc', fontSize: '1rem', outline: 'none' }}
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', display: 'flex', padding: 0 }}
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
               </div>
             </>
           )}
@@ -119,18 +151,20 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           <button
             type="submit"
             disabled={loading}
-            style={{ marginTop: '1rem', padding: '0.75rem', borderRadius: '6px', border: 'none', background: '#f59e0b', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}
+            style={{ marginTop: '0.5rem', padding: '0.875rem', borderRadius: '8px', border: 'none', background: '#f59e0b', color: '#1e293b', fontSize: '1rem', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', transition: 'background-color 0.2s', opacity: loading ? 0.7 : 1 }}
           >
-            {loading ? 'Connexion en cours...' : 'Accéder'}
+            {loading ? 'Connexion...' : 'Se connecter'}
           </button>
         </form>
       </div>
 
       <button 
-        onClick={() => { setIsAdminMode(!isAdminMode); setErrorMsg(null); }} 
-        style={{ marginTop: '20px', background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.8rem', textDecoration: 'underline' }}
+        onClick={() => { setIsAdminMode(!isAdminMode); setErrorMsg(null); setShowPassword(false); }} 
+        style={{ marginTop: '2rem', background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, transition: 'color 0.2s' }}
+        onMouseOver={(e) => e.currentTarget.style.color = '#94a3b8'}
+        onMouseOut={(e) => e.currentTarget.style.color = '#64748b'}
       >
-        {isAdminMode ? 'Retour à la connexion Bar' : 'Accès Super Admin'}
+        {isAdminMode ? '→ Retourner à la connexion établissement' : '→ Accès Administrateur'}
       </button>
     </div>
   );
