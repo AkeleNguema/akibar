@@ -72,6 +72,8 @@ model Sale {
   createdAt    DateTime   @default(now())
   paidAt       DateTime?  // Date de paiement de l'ardoise
 
+  cashClosingId String?
+  cashClosing  CashClosing? @relation(fields: [cashClosingId], references: [id], onDelete: SetNull)
   bar          Bar        @relation(fields: [barId], references: [id], onDelete: Cascade)
   table        Table?     @relation(fields: [tableId], references: [id], onDelete: SetNull)
   items        SaleItem[]
@@ -126,6 +128,8 @@ model Expense {
   montant   Float
   categorie String   // "APPROVISIONNEMENT", "CHARGES", "SALAIRES"
   createdAt DateTime @default(now())
+  cashClosingId String?
+  cashClosing  CashClosing? @relation(fields: [cashClosingId], references: [id], onDelete: SetNull)
 
   bar       Bar      @relation(fields: [barId], references: [id], onDelete: Cascade)
 }
@@ -140,6 +144,8 @@ model CashClosing {
   createdAt       DateTime @default(now())
 
   bar             Bar      @relation(fields: [barId], references: [id], onDelete: Cascade)
+  sales           Sale[]
+  expenses        Expense[]
 }
 
 //  Journal d'Audit (Anti-fraude)

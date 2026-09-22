@@ -7,7 +7,7 @@ import { notifyStockAlert } from '../services/notificationService';
 export const createSale = async (req: AuthRequest, res: Response): Promise<void> => {
   console.log("createSale payload:", req.body); // Log pour diagnostiquer le payload envoyé par le frontend
   const barIdRaw = req.barId;
-  const { items, paymentMode, nomClient, totalAmount: frontendTotal, syncId, tableId } = req.body;
+  const { items, paymentMode, nomClient, totalAmount: frontendTotal, syncId, tableId, consigneCasiers } = req.body;
 
   if (!barIdRaw) {
     res.status(401).json({ error: 'Bar non identifié.' });
@@ -109,6 +109,12 @@ export const createSale = async (req: AuthRequest, res: Response): Promise<void>
         // S'assurer que le total n'est pas négatif
         calculatedTotal = Math.max(0, calculatedTotal);
 
+        // Ajout montant consigne si applicable
+        if (consigneCasiers && Number(consigneCasiers) > 0) {
+          if (!nomClient) throw new Error("Le nom du client est requis pour enregistrer une consigne.");
+          calculatedTotal += Number(consigneCasiers) * 2000; // 2000 FCFA par casier
+        }
+
         // Créer la vente principale avec tous les articles
         const sale = await tx.sale.create({
           data: {
@@ -127,6 +133,17 @@ export const createSale = async (req: AuthRequest, res: Response): Promise<void>
             items: true,
           },
         });
+
+        if (consigneCasiers && Number(consigneCasiers) > 0 && nomClient) {
+          await tx.consigne.create({
+            data: {
+              barId,
+              nomClient: nomClient,
+              nombreCasiers: Number(consigneCasiers),
+              statut: 'EN_COURS'
+            }
+          });
+        }
 
         // Si la vente provient d'une table, libérer la table
         if (tableId) {

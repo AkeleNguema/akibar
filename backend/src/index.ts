@@ -13,6 +13,7 @@ import debtRoutes from './routes/debtRoutes';
 import tableRoutes from './routes/tableRoutes';
 import adminRoutes from './routes/adminRoutes';
 import consigneRoutes from './routes/consigneRoutes';
+import ownerRoutes from './routes/ownerRoutes';
 dotenv.config();
 
 
@@ -44,6 +45,7 @@ app.use('/api/debts', debtRoutes);
 app.use('/api/tables', tableRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/consignes', consigneRoutes);
+app.use('/api/owner', ownerRoutes);
 
 app.get('/', (req, res) => {
   res.send('API Akibar opérationnelle 🍺');

@@ -41,8 +41,13 @@ export const updateConsigne = async (req: AuthRequest, res: Response) => {
   const { statut } = req.body;
 
   try {
+    const consigneExistante = await prisma.consigne.findUnique({ where: { id: id as string } });
+    if (!consigneExistante || consigneExistante.barId !== req.barId) {
+      return res.status(404).json({ error: 'Consigne non trouvée ou non autorisée.' });
+    }
+
     const consigne = await prisma.consigne.update({
-      where: { id: id as string, barId: req.barId as string },
+      where: { id: id as string },
       data: { statut }
     });
     res.json(consigne);
@@ -55,8 +60,13 @@ export const deleteConsigne = async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
 
   try {
+    const consigneExistante = await prisma.consigne.findUnique({ where: { id: id as string } });
+    if (!consigneExistante || consigneExistante.barId !== req.barId) {
+      return res.status(404).json({ error: 'Consigne non trouvée ou non autorisée.' });
+    }
+
     await prisma.consigne.delete({
-      where: { id: id as string, barId: req.barId as string }
+      where: { id: id as string }
     });
     res.json({ message: 'Consigne supprimée avec succès.' });
   } catch (error) {

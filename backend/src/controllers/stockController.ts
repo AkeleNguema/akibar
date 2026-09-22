@@ -71,3 +71,37 @@ export const getStockStatus = async (req: any, res: Response) => {
     return res.status(500).json({ message: "Erreur lors de la récupération des stocks", error: error.message });
   }
 };
+
+// Enregistrer le retour d'emballages vides
+export const returnEmptyCrates = async (req: any, res: Response) => {
+  try {
+    const barId = req.barId || req.bar?.id;
+    if (!barId) return res.status(401).json({ message: "Établissement non authentifié." });
+
+    const { productId, casiersRetournes, rembourser } = req.body;
+    if (!productId || casiersRetournes === undefined) {
+      return res.status(400).json({ message: "ID produit et quantité de casiers retournés requis." });
+    }
+
+    const stockUpdated = await prisma.stock.update({
+      where: { barId_productId: { barId, productId } },
+      data: { casiersVides: { increment: Number(casiersRetournes) } }
+    });
+
+    if (rembourser) {
+      await prisma.expense.create({
+        data: {
+          barId,
+          motif: `Remboursement Consigne (${casiersRetournes} casiers)`,
+          montant: Number(casiersRetournes) * 2000,
+          categorie: "CHARGES"
+        }
+      });
+    }
+
+    return res.status(200).json({ message: "Retour d'emballages enregistré.", stock: stockUpdated });
+  } catch (error: any) {
+    console.error("Erreur returnEmptyCrates:", error);
+    return res.status(500).json({ message: "Erreur lors de l'enregistrement.", error: error.message });
+  }
+};
