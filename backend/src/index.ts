@@ -47,12 +47,12 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/consignes', consigneRoutes);
 app.use('/api/owner', ownerRoutes);
 
-app.get('/', (req, res) => {
+app.get('/', (req: express.Request, res: express.Response) => {
   res.send('API Akibar opérationnelle 🍺');
 });
 
 // Redirection 404 (Pour SPA ou erreurs non capturées)
-app.use((req, res, next) => {
+app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
   // Dans un vrai environnement de prod, on servirait l'index.html de React
   // res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
   res.status(404).json({ error: 'Route non trouvée. Si vous cherchez le frontend, assurez-vous qu\'il est lancé.' });
