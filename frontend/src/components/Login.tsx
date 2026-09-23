@@ -42,19 +42,21 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#0f172a', flexDirection: 'column', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#0f172a', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
       
       {onBack && (
-        <button 
-          onClick={onBack}
-          style={{ position: 'absolute', top: '2rem', left: '2rem', background: 'transparent', border: 'none', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '1rem', fontWeight: 500 }}
-        >
-          <ArrowLeft size={20} />
-          Retour à l'accueil
-        </button>
+        <div style={{ width: '100%', maxWidth: '420px', marginBottom: '1rem' }}>
+          <button 
+            onClick={onBack}
+            style={{ background: 'transparent', border: 'none', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '1rem', fontWeight: 500, padding: 0 }}
+          >
+            <ArrowLeft size={20} />
+            Retour à l'accueil
+          </button>
+        </div>
       )}
 
-      <div style={{ background: '#1e293b', padding: '2.5rem', borderRadius: '16px', width: '100%', maxWidth: '420px', color: '#f8fafc', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
+      <div style={{ background: '#1e293b', padding: '2rem', borderRadius: '16px', width: '100%', maxWidth: '420px', color: '#f8fafc', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
         <h2 style={{ textAlign: 'center', color: '#f59e0b', marginBottom: '2rem', fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.025em' }}>
           {isAdminMode ? 'Administration' : 'Connexion AKIBAR'}
         </h2>
@@ -158,14 +160,16 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
         </form>
       </div>
 
-      <button 
-        onClick={() => { setIsAdminMode(!isAdminMode); setErrorMsg(null); setShowPassword(false); }} 
-        style={{ marginTop: '2rem', background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, transition: 'color 0.2s' }}
-        onMouseOver={(e) => e.currentTarget.style.color = '#94a3b8'}
-        onMouseOut={(e) => e.currentTarget.style.color = '#64748b'}
-      >
-        {isAdminMode ? '→ Retourner à la connexion établissement' : '→ Accès Administrateur'}
-      </button>
+      <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+        <button 
+          onClick={() => { setIsAdminMode(!isAdminMode); setErrorMsg(null); setShowPassword(false); }} 
+          style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, transition: 'color 0.2s' }}
+          onMouseOver={(e) => e.currentTarget.style.color = '#94a3b8'}
+          onMouseOut={(e) => e.currentTarget.style.color = '#64748b'}
+        >
+          {isAdminMode ? '→ Retourner à la connexion établissement' : '→ Accès Administrateur'}
+        </button>
+      </div>
     </div>
   );
 };

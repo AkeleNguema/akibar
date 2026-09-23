@@ -189,24 +189,19 @@ function App() {
               >
                 Dépenses
               </button>
+              <button
+                type="button"
+                className={`nav-btn btn-closure ${activeTab === 'cloture' ? 'active' : ''}`}
+                onClick={() => setActiveTab('cloture')}
+              >
+                Clôture
+              </button>
             </>
-          )}
-        </nav>
-
-        <div className="header-right">
-          {userRole !== 'SERVEUR' && (
-            <button
-              type="button"
-              className={`nav-btn btn-closure ${activeTab === 'cloture' ? 'active' : ''}`}
-              onClick={() => setActiveTab('cloture')}
-            >
-              Clôture
-            </button>
           )}
           <button type="button" className="logout-btn" onClick={() => setShowLogoutConfirm(true)}>
             Déconnexion
           </button>
-        </div>
+        </nav>
       </header>
 
       {/* Modale de confirmation de déconnexion */}

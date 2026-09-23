@@ -31,6 +31,7 @@
   gap: 0.75rem;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
   flex: 1 1 auto;
 }
 
@@ -70,10 +71,7 @@
 }
 
 .header-right {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  flex: 0 0 auto;
+  display: none;
 }
 
 .logout-btn:hover {
@@ -156,25 +154,36 @@
 @media (max-width: 768px) {
   .app-header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     padding: 1rem;
+    gap: 1rem;
   }
   
   .app-nav {
     width: 100%;
-    overflow-x: auto;
-    padding-bottom: 10px;
-    -webkit-overflow-scrolling: touch;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    padding-bottom: 0;
+    overflow-x: visible;
   }
 
   .nav-btn {
-    white-space: nowrap;
+    white-space: normal;
+    text-align: center;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   .logout-btn {
     width: 100%;
-    margin-left: 0;
-    margin-top: 10px;
+    margin: 0;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
   
   .btn-closure {
