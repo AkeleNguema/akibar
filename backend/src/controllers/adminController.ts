@@ -3,6 +3,19 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../config/prisma';
 import { AuthRequest } from '../middlewares/authMiddleware';
 
+export const generateBarId = (name: string): string => {
+  const cleanName = name.replace(/\s+/g, '');
+  let letters = '';
+  if (cleanName.length < 3) {
+    letters = cleanName.toUpperCase() + 'X'.repeat(3 - cleanName.length);
+  } else {
+    const midIndex = Math.floor(cleanName.length / 2);
+    letters = cleanName.substring(midIndex - 1, midIndex + 2).toUpperCase();
+  }
+  const randomNum = Math.floor(Math.random() * (99 - 10 + 1)) + 10;
+  return `${letters}${randomNum}bar`;
+};
+
 export const getAllBars = async (req: AuthRequest, res: Response) => {
   try {
     const bars = await prisma.bar.findMany({
@@ -35,11 +48,24 @@ export const getAllBars = async (req: AuthRequest, res: Response) => {
 
 export const createBar = async (req: AuthRequest, res: Response) => {
   try {
-    const { id, nomBar, pinGerant, pinProprietaire, pinServeur } = req.body;
+    const { nomBar, pinGerant, pinProprietaire, pinServeur } = req.body;
 
-    if (!id || !nomBar || !pinGerant) {
-      return res.status(400).json({ error: 'ID, nom et PIN Gérant requis.' });
+    if (!nomBar || !pinGerant) {
+      return res.status(400).json({ error: 'Nom et PIN Gérant requis.' });
     }
+
+    const pinRegex = /^\d{4}$/;
+    if (!pinRegex.test(pinGerant)) {
+      return res.status(400).json({ error: 'Le PIN Gérant doit contenir exactement 4 chiffres.' });
+    }
+    if (pinProprietaire && !pinRegex.test(pinProprietaire)) {
+      return res.status(400).json({ error: 'Le PIN Propriétaire doit contenir exactement 4 chiffres.' });
+    }
+    if (pinServeur && !pinRegex.test(pinServeur)) {
+      return res.status(400).json({ error: 'Le PIN Serveur doit contenir exactement 4 chiffres.' });
+    }
+
+    const id = generateBarId(nomBar);
 
     const pinHash = await bcrypt.hash(pinGerant, 10);
     let pinProprietaireHash = null;
@@ -81,13 +107,18 @@ export const updateBar = async (req: AuthRequest, res: Response) => {
     if (nomBar) data.nomBar = nomBar;
     if (status) data.status = status;
     
+    const pinRegex = /^\d{4}$/;
+
     if (pinGerant) {
+      if (!pinRegex.test(pinGerant)) return res.status(400).json({ error: 'Le PIN Gérant doit contenir exactement 4 chiffres.' });
       data.pinHash = await bcrypt.hash(pinGerant, 10);
     }
     if (pinProprietaire) {
+      if (!pinRegex.test(pinProprietaire)) return res.status(400).json({ error: 'Le PIN Propriétaire doit contenir exactement 4 chiffres.' });
       data.pinProprietaireHash = await bcrypt.hash(pinProprietaire, 10);
     }
     if (pinServeur) {
+      if (!pinRegex.test(pinServeur)) return res.status(400).json({ error: 'Le PIN Serveur doit contenir exactement 4 chiffres.' });
       data.pinServeurHash = await bcrypt.hash(pinServeur, 10);
     }
 

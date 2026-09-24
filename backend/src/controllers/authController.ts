@@ -12,6 +12,11 @@ export const loginBar = async (req: Request, res: Response): Promise<void> => {
     res.status(400).json({ error: 'Identifiant du bar et code PIN requis.' });
     return;
   }
+  const pinRegex = /^\d{4}$/;
+  if (!pinRegex.test(pin)) {
+    res.status(400).json({ error: 'Le code PIN doit contenir exactement 4 chiffres.' });
+    return;
+  }
 
   try {
     const bar = await prisma.bar.findUnique({
@@ -23,15 +28,9 @@ export const loginBar = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // Only check for Gerant or Serveur in this route
     let role = 'GERANT';
     let isMatch = await bcrypt.compare(pin, bar.pinHash);
-
-    if (!isMatch && bar.pinProprietaireHash) {
-      isMatch = await bcrypt.compare(pin, bar.pinProprietaireHash);
-      if (isMatch) {
-        role = 'PROPRIETAIRE';
-      }
-    }
 
     if (!isMatch && bar.pinServeurHash) {
       isMatch = await bcrypt.compare(pin, bar.pinServeurHash);
@@ -75,5 +74,59 @@ export const loginSuperAdmin = async (req: Request, res: Response): Promise<void
     res.json({ message: 'Connexion Super Admin réussie', token, user: { role: 'SUPER_ADMIN' } });
   } else {
     res.status(401).json({ error: 'Identifiants Super Admin incorrects.' });
+  }
+};
+
+export const ownerLogin = async (req: Request, res: Response): Promise<void> => {
+  const { barId, pin } = req.body;
+  
+  if (!barId || !pin) {
+    res.status(400).json({ error: 'Identifiant du bar et code PIN requis.' });
+    return;
+  }
+  const pinRegex = /^\d{4}$/;
+  if (!pinRegex.test(pin)) {
+    res.status(400).json({ error: 'Le code PIN doit contenir exactement 4 chiffres.' });
+    return;
+  }
+
+  try {
+    const bar = await prisma.bar.findUnique({
+      where: { id: barId },
+    });
+
+    if (!bar) {
+      res.status(404).json({ error: 'Bar introuvable.' });
+      return;
+    }
+
+    if (!bar.pinProprietaireHash) {
+      res.status(401).json({ error: 'Aucun code PIN propriétaire configuré pour ce bar.' });
+      return;
+    }
+
+    const isMatch = await bcrypt.compare(pin, bar.pinProprietaireHash);
+
+    if (!isMatch) {
+      res.status(401).json({ error: 'Code PIN propriétaire incorrect.' });
+      return;
+    }
+
+    const token = jwt.sign({ barId: bar.id, nomBar: bar.nomBar, role: 'PROPRIETAIRE' }, JWT_SECRET, {
+      expiresIn: '7d',
+    });
+
+    res.json({
+      message: 'Connexion Propriétaire réussie !',
+      token,
+      bar: {
+        id: bar.id,
+        nomBar: bar.nomBar,
+        role: 'PROPRIETAIRE',
+      },
+    });
+  } catch (error: any) {
+    console.error('Owner Login error:', error.message, error.stack);
+    res.status(500).json({ error: 'Erreur serveur lors de la connexion.' });
   }
 };
