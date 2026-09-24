@@ -127,8 +127,9 @@ function App() {
         </div>
       )}
       <header className="app-header">
-        <div className="header-left">
-          <h2 className="app-title">🍺 Akibar {userRole === 'PROPRIETAIRE' && <span style={{fontSize: '0.8rem', color: '#f59e0b', marginLeft: '10px'}}>(PROPRIÉTAIRE)</span>}</h2>
+        <div className="header-left flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <img src="/logo.png" alt="Akibar" className="w-10 h-10 object-contain rounded-lg" style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '8px' }} />
+          <h2 className="app-title" style={{ margin: 0 }}>Akibar {userRole === 'PROPRIETAIRE' && <span style={{fontSize: '0.8rem', color: '#f59e0b', marginLeft: '10px'}}>(PROPRIÉTAIRE)</span>}</h2>
         </div>
 
         <nav className="app-nav">

@@ -17,9 +17,9 @@ export const HomePage: React.FC<HomePageProps> = ({
     <div className="homepage-container">
       {/* Header */}
       <header className="homepage-header animate-fade-in">
-        <div className="brand">
-          <span className="brand-icon" role="img" aria-label="Akibar Logo">🍺</span>
-          <h1 className="brand-title">Akibar</h1>
+        <div className="brand flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <img src="/logo.png" alt="Akibar" className="w-10 h-10 object-contain rounded-lg" style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '8px' }} />
+          <h1 className="brand-title" style={{ margin: 0 }}>Akibar</h1>
         </div>
         <button 
           className="header-login-btn" 
@@ -100,9 +100,9 @@ export const HomePage: React.FC<HomePageProps> = ({
       {/* Footer */}
       <footer className="homepage-footer animate-fade-in delay-3">
         <div className="footer-content">
-          <div className="brand">
-            <span className="brand-icon" role="img" aria-label="Akibar Logo">🍺</span>
-            <h1 className="brand-title" style={{fontSize: '1.2rem'}}>Akibar</h1>
+          <div className="brand flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <img src="/logo.png" alt="Akibar" className="w-10 h-10 object-contain rounded-lg" style={{ width: '32px', height: '32px', objectFit: 'contain', borderRadius: '8px' }} />
+            <h1 className="brand-title" style={{ margin: 0, fontSize: '1.2rem' }}>Akibar</h1>
           </div>
           <div className="footer-links">
             <button onClick={onNavigateToPrivacy} aria-label="Lire la politique de confidentialité">

@@ -57,9 +57,12 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
       )}
 
       <div style={{ background: '#1e293b', padding: '2rem', borderRadius: '16px', width: '100%', maxWidth: '420px', color: '#f8fafc', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
-        <h2 style={{ textAlign: 'center', color: '#f59e0b', marginBottom: '2rem', fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.025em' }}>
-          {isAdminMode ? 'Administration' : 'Connexion AKIBAR'}
-        </h2>
+        <div className="flex items-center justify-center gap-2" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
+          <img src="/logo.png" alt="Akibar" className="w-10 h-10 object-contain rounded-lg" style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '8px' }} />
+          <h2 style={{ margin: 0, color: '#f59e0b', fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.025em' }}>
+            {isAdminMode ? 'Administration' : 'Connexion AKIBAR'}
+          </h2>
+        </div>
 
         {errorMsg && (
           <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#f87171', padding: '0.875rem', borderRadius: '8px', marginBottom: '1.5rem', textAlign: 'center', fontSize: '0.875rem', fontWeight: 500 }}>
