@@ -96,6 +96,9 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     maxLength={4}
+                    minLength={4}
+                    pattern="\d{4}"
+                    title="4 chiffres requis"
                     placeholder="••••"
                     value={pin}
                     onChange={(e) => setPin(e.target.value)}

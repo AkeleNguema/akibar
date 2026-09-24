@@ -26,7 +26,6 @@ export const SuperAdminDashboard: React.FC<{ onLogout: () => void, onEnterAssist
 
   // Form state (shared between create and edit where applicable)
   const [formData, setFormData] = useState({
-    id: '',
     nomBar: '',
     pinGerant: '',
     pinProprietaire: '',
@@ -91,13 +90,12 @@ export const SuperAdminDashboard: React.FC<{ onLogout: () => void, onEnterAssist
   };
 
   const resetForm = () => {
-    setFormData({ id: '', nomBar: '', pinGerant: '', pinProprietaire: '', status: 'ACTIVE' });
+    setFormData({ nomBar: '', pinGerant: '', pinProprietaire: '', status: 'ACTIVE' });
   };
 
   const openEditModal = (bar: Bar) => {
     setEditingBar(bar);
     setFormData({
-      id: bar.id,
       nomBar: bar.nomBar,
       pinGerant: '', // Ne jamais afficher les PIN existants
       pinProprietaire: '',
@@ -242,20 +240,16 @@ export const SuperAdminDashboard: React.FC<{ onLogout: () => void, onEnterAssist
             </div>
             <form onSubmit={editingBar ? handleEditSubmit : handleCreateSubmit} style={{ padding: '20px', display: 'grid', gap: '15px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '5px' }}>ID Unique (Non modifiable si édition)</label>
-                <input required disabled={!!editingBar} value={formData.id} onChange={e => setFormData({...formData, id: e.target.value})} style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #334155', borderRadius: '6px', color: '#fff', opacity: editingBar ? 0.5 : 1 }} placeholder="ex: akibar1" />
-              </div>
-              <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '5px' }}>Nom du Bar</label>
                 <input required value={formData.nomBar} onChange={e => setFormData({...formData, nomBar: e.target.value})} style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #334155', borderRadius: '6px', color: '#fff' }} placeholder="Nom affiché" />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '5px' }}>PIN Gérant {editingBar && '(Optionnel : laisser vide pour ne pas modifier)'}</label>
-                <input required={!editingBar} type="password" value={formData.pinGerant} onChange={e => setFormData({...formData, pinGerant: e.target.value})} style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #334155', borderRadius: '6px', color: '#fff' }} placeholder="4 chiffres minimum" />
+                <input required={!editingBar} type="password" maxLength={4} minLength={4} pattern="\d{4}" title="4 chiffres requis" value={formData.pinGerant} onChange={e => setFormData({...formData, pinGerant: e.target.value})} style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #334155', borderRadius: '6px', color: '#fff' }} placeholder="4 chiffres exacts" />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '5px' }}>PIN Propriétaire {editingBar && '(Optionnel : laisser vide pour ne pas modifier)'}</label>
-                <input type="password" value={formData.pinProprietaire} onChange={e => setFormData({...formData, pinProprietaire: e.target.value})} style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #334155', borderRadius: '6px', color: '#fff' }} placeholder="Facultatif" />
+                <input type="password" maxLength={4} minLength={4} pattern="\d{4}" title="4 chiffres requis" value={formData.pinProprietaire} onChange={e => setFormData({...formData, pinProprietaire: e.target.value})} style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #334155', borderRadius: '6px', color: '#fff' }} placeholder="Facultatif (4 chiffres)" />
               </div>
               <button type="submit" style={{ width: '100%', padding: '12px', background: '#f59e0b', color: '#000', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', marginTop: '10px' }}>
                 {editingBar ? 'Enregistrer les modifications' : 'Créer l\'établissement'}

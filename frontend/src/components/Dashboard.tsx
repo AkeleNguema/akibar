@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getDailyClosure, getDailyDetails, type DailyDetails } from '../services/closureService';
+import { ownerLogin } from '../services/authService';
 import '../styles/dashboard.css';
 
 interface DashboardData {
@@ -26,6 +27,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const [detailsData, setDetailsData] = useState<DailyDetails | null>(null);
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [loadingDetails, setLoadingDetails] = useState<boolean>(false);
+
+  const [showOwnerModal, setShowOwnerModal] = useState(false);
+  const [ownerPin, setOwnerPin] = useState('');
+  const [ownerError, setOwnerError] = useState('');
+  const [ownerLoading, setOwnerLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,6 +68,26 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   };
 
   const closeModal = () => setActiveModal(null);
+
+  const handleOwnerLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setOwnerLoading(true);
+    setOwnerError('');
+    try {
+      let barId = '';
+      const token = localStorage.getItem('token');
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        barId = payload.barId;
+      }
+      
+      await ownerLogin({ barId, pin: ownerPin });
+      window.location.reload(); // Reload will grab the new token & role
+    } catch (err: any) {
+      setOwnerError(err.response?.data?.error || 'PIN incorrect.');
+      setOwnerLoading(false);
+    }
+  };
 
   if (loading) {
     return <div style={{ color: '#fff', textAlign: 'center', padding: '50px' }}>Chargement du tableau de bord...</div>;
@@ -210,9 +236,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
   return (
     <div className="dashboard-container">
-      <div className="dashboard-header">
-        <h2>Tableau de Bord</h2>
-        <p>Aperçu de la journée - {new Date(data.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+      <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h2>Tableau de Bord</h2>
+          <p>Aperçu de la journée - {new Date(data.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+        </div>
+        <button 
+          onClick={() => setShowOwnerModal(true)}
+          style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+        >
+          Accès Propriétaire
+        </button>
       </div>
 
       <div className="dashboard-grid">
@@ -284,6 +318,38 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             </div>
             <div className="dashboard-modal-body">
               {renderModalContent()}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showOwnerModal && (
+        <div className="dashboard-modal-overlay" onClick={() => setShowOwnerModal(false)}>
+          <div className="dashboard-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '350px' }}>
+            <div className="dashboard-modal-header">
+              <h3>Accès Propriétaire</h3>
+              <button className="dashboard-modal-close" onClick={() => setShowOwnerModal(false)}>×</button>
+            </div>
+            <div className="dashboard-modal-body">
+              {ownerError && <div style={{ color: '#ef4444', marginBottom: '10px', fontSize: '0.9rem' }}>{ownerError}</div>}
+              <form onSubmit={handleOwnerLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '5px', color: '#94a3b8', fontSize: '0.9rem' }}>Code PIN (4 chiffres)</label>
+                  <input 
+                    type="password" 
+                    maxLength={4} 
+                    minLength={4} 
+                    pattern="\d{4}" 
+                    required 
+                    value={ownerPin} 
+                    onChange={(e) => setOwnerPin(e.target.value)} 
+                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #334155', background: '#0f172a', color: '#fff' }} 
+                  />
+                </div>
+                <button type="submit" disabled={ownerLoading} style={{ width: '100%', padding: '10px', background: '#f59e0b', color: '#000', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: ownerLoading ? 'not-allowed' : 'pointer' }}>
+                  {ownerLoading ? 'Connexion...' : 'Se connecter'}
+                </button>
+              </form>
             </div>
           </div>
         </div>

@@ -126,13 +126,12 @@ function App() {
           ⚠️ Mode Hors Ligne - Les ventes sont sauvegardées localement et seront synchronisées au retour du réseau.
         </div>
       )}
-      <header className="app-header">
-        <div className="header-left flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      <header className="app-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+        <div className="header-left" style={{ display: 'flex', alignItems: 'center' }}>
           <img src="/logo.png" alt="Akibar" className="w-10 h-10 object-contain rounded-lg" style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '8px' }} />
-          <h2 className="app-title" style={{ margin: 0 }}>Akibar {userRole === 'PROPRIETAIRE' && <span style={{fontSize: '0.8rem', color: '#f59e0b', marginLeft: '10px'}}>(PROPRIÉTAIRE)</span>}</h2>
         </div>
 
-        <nav className="app-nav">
+        <nav className="app-nav" style={{ display: 'flex', flex: 1, justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
           <button
             type="button"
             className={`nav-btn ${activeTab === 'caisse' ? 'active' : ''}`}
@@ -203,6 +202,12 @@ function App() {
             Déconnexion
           </button>
         </nav>
+
+        <div className="header-right" style={{ display: 'flex', alignItems: 'center' }}>
+          <h2 className="app-title" style={{ margin: 0, whiteSpace: 'nowrap' }}>
+            Akibar {userRole === 'PROPRIETAIRE' && <span style={{fontSize: '0.8rem', color: '#f59e0b', marginLeft: '10px'}}>(PROPRIÉTAIRE)</span>}
+          </h2>
+        </div>
       </header>
 
       {/* Modale de confirmation de déconnexion */}

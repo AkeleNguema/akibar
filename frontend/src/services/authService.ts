@@ -26,6 +26,14 @@ export const loginBar = async (payload: LoginPayload): Promise<AuthResponse> => 
   return response.data;
 };
 
+export const ownerLogin = async (payload: { barId: string; pin: string }): Promise<any> => {
+  const response = await api.post('/api/auth/owner-login', payload);
+  if (response.data?.token) {
+    localStorage.setItem('token', response.data.token);
+  }
+  return response.data;
+};
+
 export const loginSuperAdmin = async (payload: { username: string; password: string }): Promise<any> => {
   const response = await api.post('/api/auth/super-admin', payload);
   if (response.data?.token) {
