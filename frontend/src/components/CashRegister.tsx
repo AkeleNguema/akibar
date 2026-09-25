@@ -3,6 +3,7 @@ import { getProducts } from '../services/stockService';
 import { createSale } from '../services/saleService';
 import { isOnline, queueOfflineSale } from '../services/syncService';
 import { updateTableCart } from '../services/tableService';
+import { printReceiptBluetooth } from '../services/bluetoothService';
 import type { Table } from '../services/tableService';
 import { TablesView } from './TablesView';
 import '../styles/cashRegister.css';
@@ -27,6 +28,7 @@ export const CashRegister: React.FC = () => {
 
   const [showTables, setShowTables] = useState<boolean>(false);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
+  const [lastSale, setLastSale] = useState<{ cart: CartItem[], total: number, paymentMode: string, nomClient: string } | null>(null);
 
   const loadCatalog = async () => {
     try {
@@ -141,6 +143,7 @@ export const CashRegister: React.FC = () => {
         setMessage({ text: 'Réseau hors ligne : Vente enregistrée en local (en attente de synchronisation).', type: 'success' });
       }
 
+      setLastSale({ cart: [...cart], total: totalAmount, paymentMode, nomClient: nomClient.trim() });
       setCart([]);
       setMontantRecu('');
       setNomClient('');
@@ -236,7 +239,8 @@ export const CashRegister: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowTables(true)}
-              style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', padding: '5px 10px', fontSize: '0.85rem', cursor: 'pointer' }}
+              className="bg-amber-500 hover:bg-amber-600 text-white rounded-md transition-colors"
+              style={{ border: 'none', padding: '5px 10px', fontSize: '0.85rem', cursor: 'pointer' }}
             >
               Choisir table
             </button>
@@ -364,6 +368,17 @@ export const CashRegister: React.FC = () => {
           >
             {loading ? 'Encaissement...' : 'Valider l’encaissement'}
           </button>
+          
+          {lastSale && (
+            <button
+              type="button"
+              className="btn-validate-sale"
+              style={{ marginTop: '10px', background: '#3b82f6', color: '#fff', border: 'none' }}
+              onClick={() => printReceiptBluetooth('AKIBAR', lastSale.nomClient, lastSale.cart.map(i => ({ nom: i.product.nom, quantite: i.quantite, prixVenteBouteille: i.product.prixVenteBouteille })), lastSale.total, lastSale.paymentMode)}
+            >
+              🖨️ Imprimer le ticket
+            </button>
+          )}
         </div>
       </div>
     </div>

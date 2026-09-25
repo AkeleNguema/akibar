@@ -21,6 +21,7 @@ export const StockManager: React.FC = () => {
 
   const fetchProductsList = async () => {
     try {
+      setMessage(null);
       const data = await getProducts();
       const list = Array.isArray(data) ? data : [];
       setProducts(list);
@@ -32,7 +33,12 @@ export const StockManager: React.FC = () => {
       setConsignes(Array.isArray(consigneData) ? consigneData : []);
     } catch (err) {
       console.error('Erreur chargement stock/consignes:', err);
-      setMessage({ text: 'Impossible de charger les données.', type: 'error' });
+      setProducts(prev => {
+        if (prev.length === 0) {
+          setMessage({ text: 'Impossible de charger les données.', type: 'error' });
+        }
+        return prev;
+      });
     }
   };
 

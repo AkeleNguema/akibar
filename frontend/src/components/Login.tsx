@@ -60,7 +60,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
         <div className="flex items-center justify-center gap-2" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
           <img src="/logo.png" alt="Akibar" className="w-10 h-10 object-contain rounded-lg" style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '8px' }} />
           <h2 style={{ margin: 0, color: '#f59e0b', fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.025em' }}>
-            {isAdminMode ? 'Administration' : 'Connexion AKIBAR'}
+            {isAdminMode ? 'Administration' : 'Connexion'}
           </h2>
         </div>
 
@@ -166,15 +166,18 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
         </form>
       </div>
 
-      <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+      <div style={{ marginTop: '1.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         <button 
           onClick={() => { setIsAdminMode(!isAdminMode); setErrorMsg(null); setShowPassword(false); }} 
-          style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, transition: 'color 0.2s' }}
-          onMouseOver={(e) => e.currentTarget.style.color = '#94a3b8'}
-          onMouseOut={(e) => e.currentTarget.style.color = '#64748b'}
+          className="text-gray-400 hover:text-amber-500 transition-colors"
+          style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500 }}
         >
           {isAdminMode ? '→ Retourner à la connexion établissement' : '→ Accès Administrateur'}
         </button>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+          <button onClick={() => {}} className="text-gray-400 hover:text-amber-500 transition-colors" style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}>Politique de Confidentialité</button>
+          <button onClick={() => {}} className="text-gray-400 hover:text-amber-500 transition-colors" style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}>Conditions d'Utilisation</button>
+        </div>
       </div>
     </div>
   );

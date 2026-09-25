@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { getOwnerDashboardStats } from '../services/ownerService';
 import type { OwnerStats } from '../services/ownerService';
+import { subscribeToPushNotifications } from '../services/pushService';
 import { TrendingUp, Activity, PackageOpen, CreditCard, DollarSign, Wallet } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import '../styles/ownerDashboard.css';
 
 export const OwnerDashboard: React.FC = () => {
@@ -21,6 +23,9 @@ export const OwnerDashboard: React.FC = () => {
       }
     };
     loadStats();
+    
+    // Demander l'autorisation pour les notifications push
+    subscribeToPushNotifications();
   }, []);
 
   if (loading) {
@@ -117,6 +122,33 @@ export const OwnerDashboard: React.FC = () => {
               </div>
             ))}
             {stats.recentClosures.length === 0 && <p className="empty-state">Aucune clôture enregistrée</p>}
+          </div>
+        </div>
+      </div>
+
+      <div className="owner-charts-section" style={{ marginTop: '2rem' }}>
+        <div className="owner-panel" style={{ width: '100%' }}>
+          <h2>Évolution du Chiffre d'Affaires (30 Derniers Jours)</h2>
+          <div style={{ width: '100%', height: 350, marginTop: '1rem' }}>
+            <ResponsiveContainer>
+              <AreaChart data={stats.salesEvolution || []} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="date" tickFormatter={(tick) => new Date(tick).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })} stroke="#94a3b8" />
+                <YAxis tickFormatter={(tick) => `${(tick / 1000).toFixed(0)}k`} stroke="#94a3b8" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                <Tooltip 
+                  formatter={(value: number) => [formatCurrency(value), 'CA']}
+                  labelFormatter={(label) => new Date(label).toLocaleDateString('fr-FR')}
+                  contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#f8fafc' }}
+                />
+                <Area type="monotone" dataKey="total" stroke="#f59e0b" strokeWidth={3} fillOpacity={1} fill="url(#colorSales)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>

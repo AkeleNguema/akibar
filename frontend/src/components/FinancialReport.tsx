@@ -94,11 +94,32 @@ export const FinancialReport: React.FC = () => {
             <StatCard title="Dépenses Totales" value={data.expenses} color="#ef4444" />
           </div>
 
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-            <button onClick={handleExportExcel} style={{ ...btnStyle, background: '#10b981', color: '#fff' }}>📥 Exporter Excel</button>
-            <button onClick={handleExportPDF} style={{ ...btnStyle, background: '#ef4444', color: '#fff' }}>📄 Exporter PDF</button>
-            <button onClick={handleShareWhatsApp} style={{ ...btnStyle, background: '#22c55e', color: '#fff' }}>💬 Partager WhatsApp</button>
+          <div className="export-actions" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+            <button onClick={handleExportExcel} className="export-btn hover-green">📥 Exporter Excel</button>
+            <button onClick={handleExportPDF} className="export-btn hover-amber">📄 Exporter PDF</button>
+            <button onClick={handleShareWhatsApp} className="export-btn hover-green">💬 Partager WhatsApp</button>
           </div>
+          
+          <style>{`
+            .export-btn {
+              background: transparent;
+              border: 1px solid #334155;
+              color: #cbd5e1;
+              padding: 0.75rem 1.5rem;
+              border-radius: 6px;
+              font-weight: 600;
+              cursor: pointer;
+              transition: all 0.2s ease-in-out;
+            }
+            .export-btn.hover-green:hover {
+              color: #10b981;
+              border-color: #10b981;
+            }
+            .export-btn.hover-amber:hover {
+              color: #f59e0b;
+              border-color: #f59e0b;
+            }
+          `}</style>
 
           <div style={{ background: '#1e293b', borderRadius: '12px', overflow: 'hidden' }}>
             <h3 style={{ padding: '1.5rem', margin: 0, borderBottom: '1px solid #334155' }}>Journal des Transactions</h3>
