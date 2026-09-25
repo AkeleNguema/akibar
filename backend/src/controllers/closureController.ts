@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { prisma } from '../config/prisma';
 import { AuthRequest } from '../middlewares/authMiddleware';
+import { sendPushNotificationToBar } from './pushController';
 
 // Obtenir le résumé théorique de la journée en cours
 export const getDailySummary = async (req: AuthRequest, res: Response) => {
@@ -147,6 +148,26 @@ export const createClosure = async (req: AuthRequest, res: Response) => {
       await prisma.auditLog.create({
          data: { barId, action: "CLOTURE_JOURNEE", details: `Commentaire: ${comments}` }
       });
+    }
+
+    if (ecart !== 0) {
+      await prisma.auditLog.create({
+        data: { 
+          barId, 
+          action: "ECART_CLOTURE", 
+          details: JSON.stringify({ 
+            attendu: montantAttendu, 
+            reel: parseFloat(finalMontantReel), 
+            ecart 
+          }) 
+        }
+      });
+      // Envoyer une notification push au propriétaire
+      sendPushNotificationToBar(barId, {
+        title: '⚠️ Alerte Clôture Akibar',
+        body: `Une clôture a été effectuée avec un écart de ${ecart} FCFA.`,
+        url: '/owner-dashboard'
+      }).catch(err => console.error("Erreur notification PWA:", err));
     }
 
     return res.status(201).json({ message: "Clôture de caisse enregistrée avec succès", closure });

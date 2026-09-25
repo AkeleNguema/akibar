@@ -159,3 +159,36 @@ export const payDebt = async (req: any, res: Response) => {
     return res.status(500).json({ message: "Erreur lors du règlement de l'ardoise", error: error.message });
   }
 };
+
+export const deleteDebt = async (req: any, res: Response) => {
+  try {
+    const barId = req.barId || req.bar?.id;
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    if (!barId) {
+      return res.status(401).json({ message: "Établissement non identifié." });
+    }
+
+    const sale = await prisma.sale.findUnique({ where: { id } });
+    if (!sale || sale.barId !== barId) {
+      return res.status(404).json({ message: "Ardoise introuvable" });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.sale.delete({ where: { id } });
+      await tx.auditLog.create({
+        data: {
+          barId,
+          action: 'EFFACEMENT_ARDOISE',
+          details: JSON.stringify({ debtId: id, client: sale.nomClient, amount: sale.totalAmount, reason })
+        }
+      });
+    });
+
+    return res.status(200).json({ message: "Ardoise effacée avec succès" });
+  } catch (error: any) {
+    console.error("Erreur deleteDebt:", error);
+    return res.status(500).json({ message: "Erreur lors de l'effacement de l'ardoise", error: error.message });
+  }
+};

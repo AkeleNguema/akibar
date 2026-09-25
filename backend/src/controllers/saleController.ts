@@ -173,3 +173,56 @@ export const createSale = async (req: AuthRequest, res: Response): Promise<void>
     res.status(400).json({ error: error.message || 'Erreur lors de la vente.', details: error.stack });
   }
 };
+
+export const cancelSale = async (req: AuthRequest, res: Response): Promise<void> => {
+  const barId = req.barId;
+  const { id } = req.params;
+  const { reason } = req.body;
+
+  if (!barId) {
+    res.status(401).json({ error: 'Non autorisé' });
+    return;
+  }
+
+  try {
+    const sale = await prisma.sale.findUnique({
+      where: { id },
+      include: { items: true }
+    });
+
+    if (!sale || sale.barId !== barId) {
+      res.status(404).json({ error: 'Vente introuvable' });
+      return;
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // Restaurer le stock
+      for (const item of sale.items) {
+        const stock = await tx.stock.findFirst({
+          where: { barId, productId: item.productId }
+        });
+        if (stock) {
+          await tx.stock.update({
+            where: { id: stock.id },
+            data: { quantiteBouteilles: { increment: item.quantite } }
+          });
+        }
+      }
+
+      await tx.sale.delete({ where: { id } });
+
+      await tx.auditLog.create({
+        data: {
+          barId,
+          action: 'ANNULATION_VENTE',
+          details: JSON.stringify({ saleId: id, total: sale.totalAmount, reason })
+        }
+      });
+    });
+
+    res.status(200).json({ message: 'Vente annulée avec succès' });
+  } catch (error: any) {
+    console.error('Erreur cancelSale:', error);
+    res.status(500).json({ error: 'Erreur lors de l\'annulation de la vente' });
+  }
+};

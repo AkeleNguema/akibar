@@ -49,9 +49,10 @@ export const loginBar = async (req: Request, res: Response): Promise<void> => {
       expiresIn: '7d',
     });
 
+    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 7 * 24 * 60 * 60 * 1000 });
+
     res.json({
       message: 'Connexion réussie !',
-      token,
       bar: {
         id: bar.id,
         nomBar: bar.nomBar,
@@ -71,7 +72,8 @@ export const loginSuperAdmin = async (req: Request, res: Response): Promise<void
 
   if (adminUser && adminPass && username === adminUser && password === adminPass) {
     const token = jwt.sign({ role: 'SUPER_ADMIN' }, JWT_SECRET, { expiresIn: '1d' });
-    res.json({ message: 'Connexion Super Admin réussie', token, user: { role: 'SUPER_ADMIN' } });
+    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 24 * 60 * 60 * 1000 });
+    res.json({ message: 'Connexion Super Admin réussie', user: { role: 'SUPER_ADMIN' } });
   } else {
     res.status(401).json({ error: 'Identifiants Super Admin incorrects.' });
   }
@@ -112,13 +114,14 @@ export const ownerLogin = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    const token = jwt.sign({ barId: bar.id, nomBar: bar.nomBar, role: 'PROPRIETAIRE' }, JWT_SECRET, {
+    const token = jwt.sign({ id: bar.id, barId: bar.id, nomBar: bar.nomBar, role: 'PROPRIETAIRE' }, JWT_SECRET, {
       expiresIn: '7d',
     });
 
+    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 7 * 24 * 60 * 60 * 1000 });
+
     res.json({
       message: 'Connexion Propriétaire réussie !',
-      token,
       bar: {
         id: bar.id,
         nomBar: bar.nomBar,
@@ -128,5 +131,24 @@ export const ownerLogin = async (req: Request, res: Response): Promise<void> => 
   } catch (error: any) {
     console.error('Owner Login error:', error.message, error.stack);
     res.status(500).json({ error: 'Erreur serveur lors de la connexion.' });
+  }
+};
+
+export const logout = (req: Request, res: Response): void => {
+  res.clearCookie('token', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict' });
+  res.json({ message: 'Déconnexion réussie.' });
+};
+
+export const getMe = (req: any, res: Response): void => {
+  const token = req.cookies.token;
+  if (!token) {
+    res.json({ user: null });
+    return;
+  }
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    res.json({ user: decoded });
+  } catch (error) {
+    res.json({ user: null });
   }
 };

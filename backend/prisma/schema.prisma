@@ -25,6 +25,7 @@ model Bar {
   expenses       Expense[]
   cashClosings   CashClosing[]
   auditLogs      AuditLog[]
+  pushSubscriptions PushSubscription[]
 }
 
 //  Catalogue des Produits (Boissons)
@@ -154,6 +155,18 @@ model AuditLog {
   barId     String
   action    String   // ex: "ANNULATION_VENTE", "MODIF_PRIX"
   details   String
+  createdAt DateTime @default(now())
+
+  bar       Bar      @relation(fields: [barId], references: [id], onDelete: Cascade)
+}
+
+// Souscriptions Web Push (Notifications)
+model PushSubscription {
+  id        String   @id @default(uuid())
+  barId     String
+  endpoint  String
+  p256dh    String
+  auth      String
   createdAt DateTime @default(now())
 
   bar       Bar      @relation(fields: [barId], references: [id], onDelete: Cascade)

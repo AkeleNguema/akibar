@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import cookieParser from 'cookie-parser';
 import authRoutes from './routes/authRoutes';
 import productRoutes from './routes/productRoutes';
 import saleRoutes from './routes/saleRoutes';
@@ -14,6 +15,7 @@ import tableRoutes from './routes/tableRoutes';
 import adminRoutes from './routes/adminRoutes';
 import consigneRoutes from './routes/consigneRoutes';
 import ownerRoutes from './routes/ownerRoutes';
+import pushRoutes from './routes/pushRoutes';
 dotenv.config();
 
 
@@ -23,8 +25,9 @@ const PORT = process.env.PORT || 5000;
 
 // Security and Rate Limiting
 app.use(helmet()); // Adds CSP, HSTS, X-Frame-Options, etc.
-app.use(cors());
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
+app.use(cookieParser());
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -46,6 +49,7 @@ app.use('/api/tables', tableRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/consignes', consigneRoutes);
 app.use('/api/owner', ownerRoutes);
+app.use('/api/notifications', pushRoutes);
 
 app.get('/', (req: express.Request, res: express.Response) => {
   res.send('API Akibar opérationnelle 🍺');

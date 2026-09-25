@@ -105,3 +105,52 @@ export const returnEmptyCrates = async (req: any, res: Response) => {
     return res.status(500).json({ message: "Erreur lors de l'enregistrement.", error: error.message });
   }
 };
+
+export const manualStockAdjustment = async (req: any, res: Response) => {
+  try {
+    const barId = req.barId || req.bar?.id;
+    const { productId, nouvelleQuantite, reason } = req.body;
+
+    if (!barId) return res.status(401).json({ message: "Établissement non authentifié." });
+    if (!productId || nouvelleQuantite === undefined) {
+      return res.status(400).json({ message: "ID produit et nouvelle quantité requis." });
+    }
+
+    const stock = await prisma.stock.findUnique({
+      where: { barId_productId: { barId, productId } },
+      include: { product: true }
+    });
+
+    if (!stock) return res.status(404).json({ message: "Stock non trouvé." });
+
+    const ancienneQuantite = stock.quantiteBouteilles;
+    const ecart = Number(nouvelleQuantite) - ancienneQuantite;
+
+    await prisma.$transaction(async (tx) => {
+      await tx.stock.update({
+        where: { id: stock.id },
+        data: { quantiteBouteilles: Number(nouvelleQuantite) }
+      });
+
+      await tx.auditLog.create({
+        data: {
+          barId,
+          action: 'AJUSTEMENT_MANUEL_STOCK',
+          details: JSON.stringify({ 
+            productId, 
+            produit: stock.product.nom,
+            ancienneQuantite, 
+            nouvelleQuantite, 
+            ecart,
+            reason 
+          })
+        }
+      });
+    });
+
+    return res.status(200).json({ message: "Stock ajusté avec succès." });
+  } catch (error: any) {
+    console.error("Erreur manualStockAdjustment:", error);
+    return res.status(500).json({ message: "Erreur lors de l'ajustement du stock.", error: error.message });
+  }
+};

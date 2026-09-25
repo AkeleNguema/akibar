@@ -10,7 +10,7 @@ export const getBarProducts = async (req: any, res: Response): Promise<void> => 
   }
 
   try {
-    const products = await prisma.product.findMany({
+    let products = await prisma.product.findMany({
       where: { barId },
       include: {
         stocks: {
@@ -18,6 +18,34 @@ export const getBarProducts = async (req: any, res: Response): Promise<void> => 
         }
       }
     });
+
+    if (products.length === 0) {
+      const defaultCatalogue = [
+        { nom: 'Régab', categorie: 'Bières', bouteillesParCasier: 24, prixAchatCasier: 10000, prixVenteBouteille: 600, seuilStockBas: 2 },
+        { nom: 'Castel', categorie: 'Bières', bouteillesParCasier: 24, prixAchatCasier: 12000, prixVenteBouteille: 700, seuilStockBas: 2 },
+        { nom: '33 Export', categorie: 'Bières', bouteillesParCasier: 24, prixAchatCasier: 10000, prixVenteBouteille: 600, seuilStockBas: 2 },
+        { nom: 'Beaufort', categorie: 'Bières', bouteillesParCasier: 24, prixAchatCasier: 12000, prixVenteBouteille: 700, seuilStockBas: 2 },
+        { nom: 'Coca Cola', categorie: 'Sucreries', bouteillesParCasier: 24, prixAchatCasier: 9000, prixVenteBouteille: 500, seuilStockBas: 2 },
+        { nom: 'Fanta', categorie: 'Sucreries', bouteillesParCasier: 24, prixAchatCasier: 9000, prixVenteBouteille: 500, seuilStockBas: 2 },
+        { nom: 'Djino', categorie: 'Sucreries', bouteillesParCasier: 24, prixAchatCasier: 9000, prixVenteBouteille: 500, seuilStockBas: 2 },
+      ];
+
+      await prisma.product.createMany({
+        data: defaultCatalogue.map(p => ({
+          ...p,
+          barId
+        }))
+      });
+
+      products = await prisma.product.findMany({
+        where: { barId },
+        include: {
+          stocks: {
+            where: { barId }
+          }
+        }
+      });
+    }
 
     res.json(products);
   } catch (error) {

@@ -14,14 +14,12 @@ export const authenticateBar = (
   res: Response,
   next: NextFunction
 ): void => {
-  const authHeader = req.headers.authorization;
+  const token = req.cookies.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!token) {
     res.status(401).json({ error: 'Accès non autorisé. Token manquant.' });
     return;
   }
-
-  const token = authHeader.split(' ')[1];
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { barId?: string, role?: string, nomBar?: string };
@@ -52,12 +50,11 @@ export const requireRole = (allowedRoles: string[]) => {
 };
 
 export const requireSuperAdmin = (req: AuthRequest, res: Response, next: NextFunction): void => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  const token = req.cookies.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
+  if (!token) {
     res.status(401).json({ error: 'Accès non autorisé.' });
     return;
   }
-  const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { role?: string };
     if (decoded.role !== 'SUPER_ADMIN') {

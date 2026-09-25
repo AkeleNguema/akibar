@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { loginBar, loginSuperAdmin, ownerLogin } from '../controllers/authController';
+import { loginBar, loginSuperAdmin, ownerLogin, logout, getMe } from '../controllers/authController';
 
 const router = Router();
 
@@ -7,5 +7,7 @@ const router = Router();
 router.post('/login', loginBar);
 router.post('/super-admin', loginSuperAdmin);
 router.post('/owner-login', ownerLogin);
+router.post('/logout', logout);
+router.get('/me', getMe);
 
 export default router;
