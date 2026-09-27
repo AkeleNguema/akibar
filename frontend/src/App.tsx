@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { HomePage } from './components/HomePage';
 import { Login } from './components/Login';
@@ -20,7 +20,21 @@ import './styles/app.css';
 
 const Layout = ({ userRole, handleLogout, quitAssistance, assistanceBarId, onlineStatus }: any) => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="app-container">
@@ -40,26 +54,41 @@ const Layout = ({ userRole, handleLogout, quitAssistance, assistanceBarId, onlin
           <img src="/logo.png" alt="Akibar" className="w-10 h-10 object-contain rounded-lg" style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '8px' }} />
         </div>
 
-        <nav className="app-nav" style={{ display: 'flex', flex: 1, justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
-          <Link to="/caisse" className={`nav-btn ${location.pathname === '/caisse' ? 'active' : ''}`}>Caisse / Vente</Link>
+        <nav className="app-nav" style={{ display: 'flex', flex: 1, justifyContent: 'center', alignItems: 'center', gap: '10px', flexWrap: 'nowrap' }}>
+          <Link to="/caisse" className={`nav-btn text-sm no-underline hover:no-underline ${location.pathname === '/caisse' ? 'active' : ''}`}>Caisse / Vente</Link>
           
           {userRole !== 'SERVEUR' && (
             <>
               {userRole === 'PROPRIETAIRE' ? (
-                <Link to="/owner-dashboard" className={`nav-btn ${location.pathname === '/owner-dashboard' ? 'active' : ''}`}>Mon Dashboard</Link>
+                <Link to="/owner-dashboard" className={`nav-btn text-sm no-underline hover:no-underline ${location.pathname === '/owner-dashboard' ? 'active' : ''}`}>Mon Dashboard</Link>
               ) : (
-                <Link to="/dashboard" className={`nav-btn ${location.pathname === '/dashboard' ? 'active' : ''}`}>Dashboard</Link>
+                <Link to="/dashboard" className={`nav-btn text-sm no-underline hover:no-underline ${location.pathname === '/dashboard' ? 'active' : ''}`}>Dashboard</Link>
               )}
-              {(userRole === 'ADMIN' || userRole === 'GERANT' || userRole === 'PROPRIETAIRE' || userRole === 'SUPER_ADMIN') && (
-                <Link to="/rapports" className={`nav-btn ${location.pathname === '/rapports' ? 'active' : ''}`}>Rapports Financiers</Link>
-              )}
-              <Link to="/stock" className={`nav-btn ${location.pathname === '/stock' ? 'active' : ''}`}>Approvisionnement & Stock</Link>
-              <Link to="/ardoises" className={`nav-btn ${location.pathname === '/ardoises' ? 'active' : ''}`}>Ardoises</Link>
-              <Link to="/depenses" className={`nav-btn ${location.pathname === '/depenses' ? 'active' : ''}`}>Dépenses</Link>
-              <Link to="/cloture" className={`nav-btn btn-closure ${location.pathname === '/cloture' ? 'active' : ''}`}>Clôture</Link>
+              
+              <div className="relative" ref={dropdownRef}>
+                <button 
+                  type="button" 
+                  className="nav-btn text-sm no-underline hover:no-underline"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                >
+                  Gestion ▼
+                </button>
+                
+                {isDropdownOpen && (
+                  <div className="absolute z-50 mt-2 flex flex-col bg-slate-800 border border-slate-700 shadow-lg rounded-md min-w-[200px] overflow-hidden left-0">
+                    {(userRole === 'ADMIN' || userRole === 'GERANT' || userRole === 'PROPRIETAIRE' || userRole === 'SUPER_ADMIN') && (
+                      <Link to="/rapports" onClick={() => setIsDropdownOpen(false)} className={`px-4 py-2 text-sm text-white no-underline hover:no-underline hover:bg-slate-700 hover:text-amber-500 ${location.pathname === '/rapports' ? 'bg-slate-700 text-amber-500' : ''}`}>Rapports Financiers</Link>
+                    )}
+                    <Link to="/stock" onClick={() => setIsDropdownOpen(false)} className={`px-4 py-2 text-sm text-white no-underline hover:no-underline hover:bg-slate-700 hover:text-amber-500 ${location.pathname === '/stock' ? 'bg-slate-700 text-amber-500' : ''}`}>Approvisionnement & Stock</Link>
+                    <Link to="/ardoises" onClick={() => setIsDropdownOpen(false)} className={`px-4 py-2 text-sm text-white no-underline hover:no-underline hover:bg-slate-700 hover:text-amber-500 ${location.pathname === '/ardoises' ? 'bg-slate-700 text-amber-500' : ''}`}>Ardoises</Link>
+                    <Link to="/depenses" onClick={() => setIsDropdownOpen(false)} className={`px-4 py-2 text-sm text-white no-underline hover:no-underline hover:bg-slate-700 hover:text-amber-500 ${location.pathname === '/depenses' ? 'bg-slate-700 text-amber-500' : ''}`}>Dépenses</Link>
+                    <Link to="/cloture" onClick={() => setIsDropdownOpen(false)} className={`px-4 py-2 text-sm text-white no-underline hover:no-underline hover:bg-slate-700 hover:text-amber-500 ${location.pathname === '/cloture' ? 'bg-slate-700 text-amber-500' : ''}`}>Clôture</Link>
+                  </div>
+                )}
+              </div>
             </>
           )}
-          <button type="button" className="logout-btn" onClick={() => setShowLogoutConfirm(true)}>Déconnexion</button>
+          <button type="button" className="logout-btn text-sm no-underline hover:no-underline" onClick={() => setShowLogoutConfirm(true)}>Déconnexion</button>
         </nav>
 
         <div className="header-right" style={{ display: 'flex', alignItems: 'center' }}>
