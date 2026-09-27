@@ -3,15 +3,19 @@ import { AuthRequest } from '../middlewares/authMiddleware';
 import { prisma } from '../config/prisma';
 import webPush from 'web-push';
 
-// Configuration VAPID (Idéalement en .env)
-const publicVapidKey = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuB-5MIDWCEm2h0iXq8O5Z6zNU';
-const privateVapidKey = '8BVRcQU2O4tXG7r3aVv8QG2uE1T-QZ7O9d7j7F7W9kM';
+// Configuration VAPID
+const publicVapidKey = process.env.VAPID_PUBLIC_KEY || '';
+const privateVapidKey = process.env.VAPID_PRIVATE_KEY || '';
 
-webPush.setVapidDetails(
-  'mailto:contact@akibar.com',
-  publicVapidKey,
-  privateVapidKey
-);
+if (publicVapidKey && privateVapidKey) {
+  webPush.setVapidDetails(
+    'mailto:contact@akibar.com',
+    publicVapidKey,
+    privateVapidKey
+  );
+} else {
+  console.warn("⚠️ VAPID keys missing in environment variables. Push notifications won't work.");
+}
 
 export const subscribePush = async (req: AuthRequest, res: Response): Promise<void> => {
   const barId = req.barId;
