@@ -31,7 +31,7 @@ export const getAllBars = async (req: AuthRequest, res: Response) => {
       },
       orderBy: { createdAt: 'desc' }
     });
-    
+
     const formattedBars = bars.map(bar => ({
       id: bar.id,
       nomBar: bar.nomBar,
@@ -39,13 +39,14 @@ export const getAllBars = async (req: AuthRequest, res: Response) => {
       status: bar.status,
       userCount: bar.pinProprietaireHash ? 2 : 1
     }));
-    
+
     res.status(200).json(formattedBars);
   } catch (error: any) {
     res.status(500).json({ error: 'Erreur lors de la récupération des bars.' });
   }
 };
 
+//authentification bar
 export const createBar = async (req: AuthRequest, res: Response) => {
   try {
     const { nomBar, pinGerant, pinProprietaire, pinServeur } = req.body;
@@ -70,7 +71,7 @@ export const createBar = async (req: AuthRequest, res: Response) => {
     const pinHash = await bcrypt.hash(pinGerant, 10);
     let pinProprietaireHash = null;
     let pinServeurHash = null;
-    
+
     if (pinProprietaire) {
       pinProprietaireHash = await bcrypt.hash(pinProprietaire, 10);
     }
@@ -106,7 +107,7 @@ export const updateBar = async (req: AuthRequest, res: Response) => {
     const data: any = {};
     if (nomBar) data.nomBar = nomBar;
     if (status) data.status = status;
-    
+
     const pinRegex = /^\d{4}$/;
 
     if (pinGerant) {
