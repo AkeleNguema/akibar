@@ -49,7 +49,7 @@ export const loginBar = async (req: Request, res: Response): Promise<void> => {
       expiresIn: '7d',
     });
 
-    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 7 * 24 * 60 * 60 * 1000 });
+    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 });
 
     res.json({
       message: 'Connexion réussie !',
@@ -72,7 +72,7 @@ export const loginSuperAdmin = async (req: Request, res: Response): Promise<void
 
   if (adminUser && adminPass && username === adminUser && password === adminPass) {
     const token = jwt.sign({ role: 'SUPER_ADMIN' }, JWT_SECRET, { expiresIn: '1d' });
-    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 24 * 60 * 60 * 1000 });
+    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', maxAge: 24 * 60 * 60 * 1000 });
     res.json({ message: 'Connexion Super Admin réussie', user: { role: 'SUPER_ADMIN' } });
   } else {
     res.status(401).json({ error: 'Identifiants Super Admin incorrects.' });
@@ -118,7 +118,7 @@ export const ownerLogin = async (req: Request, res: Response): Promise<void> => 
       expiresIn: '7d',
     });
 
-    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 7 * 24 * 60 * 60 * 1000 });
+    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 });
 
     res.json({
       message: 'Connexion Propriétaire réussie !',
@@ -135,7 +135,7 @@ export const ownerLogin = async (req: Request, res: Response): Promise<void> => 
 };
 
 export const logout = (req: Request, res: Response): void => {
-  res.clearCookie('token', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict' });
+  res.clearCookie('token', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' });
   res.json({ message: 'Déconnexion réussie.' });
 };
 
