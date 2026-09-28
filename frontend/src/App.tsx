@@ -179,11 +179,19 @@ const AuthWrapper = () => {
             <Login 
               onBack={() => navigate('/')}
               onLoginSuccess={async () => {
-                const me = await getMe();
-                if (me) {
-                  setIsAuthenticated(true);
-                  setUserRole(me.role);
-                  navigate(me.role === 'PROPRIETAIRE' ? '/owner-dashboard' : '/caisse', { replace: true });
+                try {
+                  const me = await getMe();
+                  if (me) {
+                    setIsAuthenticated(true);
+                    setUserRole(me.role);
+                    navigate(me.role === 'PROPRIETAIRE' ? '/owner-dashboard' : '/caisse', { replace: true });
+                  } else {
+                    console.error("Erreur: getMe() a retourné null après une connexion réussie.");
+                    alert("La connexion a réussi côté serveur, mais votre navigateur a refusé d'enregistrer le cookie de session (problème CORS/SameSite).");
+                  }
+                } catch (error) {
+                  console.error("Erreur lors de l'appel à getMe:", error);
+                  alert("Une erreur est survenue lors de la vérification de la session.");
                 }
               }} 
             />
