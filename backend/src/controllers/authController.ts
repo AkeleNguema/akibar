@@ -8,6 +8,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_akibar_key';
 export const loginBar = async (req: Request, res: Response): Promise<void> => {
   const { barId, pin } = req.body;
 
+  console.log("LOGIN ATTEMPT - barId:", barId, "type:", typeof barId, "pin:", pin);
+
   if (!barId || !pin) {
     res.status(400).json({ error: 'Identifiant du bar et code PIN requis.' });
     return;
@@ -19,7 +21,7 @@ export const loginBar = async (req: Request, res: Response): Promise<void> => {
   }
 
   try {
-    const bar = await prisma.bar.findUnique({
+    const bar = await prisma.bar.findFirst({
       where: { id: barId },
     });
 
@@ -60,7 +62,9 @@ export const loginBar = async (req: Request, res: Response): Promise<void> => {
       },
     });
   } catch (error: any) {
-    console.error('Login error:', error.message, error.stack);
+    console.error('Login error (FULL):');
+    console.dir(error, { depth: null });
+    console.error('Error message:', error.message);
     res.status(500).json({ error: 'Erreur serveur lors de la connexion.' });
   }
 };
@@ -93,7 +97,7 @@ export const ownerLogin = async (req: Request, res: Response): Promise<void> => 
   }
 
   try {
-    const bar = await prisma.bar.findUnique({
+    const bar = await prisma.bar.findFirst({
       where: { id: barId },
     });
 
