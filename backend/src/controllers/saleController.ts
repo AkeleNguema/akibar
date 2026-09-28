@@ -176,7 +176,7 @@ export const createSale = async (req: AuthRequest, res: Response): Promise<void>
 
 export const cancelSale = async (req: AuthRequest, res: Response): Promise<void> => {
   const barId = req.barId;
-  const { id } = req.params;
+  const id = req.params.id as string;
   const { reason } = req.body;
 
   if (!barId) {
