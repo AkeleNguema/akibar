@@ -3,19 +3,19 @@ import { getTables } from '../services/tableService';
 import type { Table } from '../services/tableService';
 import '../styles/tablesView.css';
 
-import bateke from '../assets/masks/bateke.svg';
-import fang from '../assets/masks/fang.svg';
-import kidumu from '../assets/masks/kidumu.svg';
-import kota from '../assets/masks/kota.svg';
-import mahongwe from '../assets/masks/mahongwe.svg';
-import mbete from '../assets/masks/mbete.svg';
-import punu from '../assets/masks/punu.svg';
-import sira from '../assets/masks/sira.svg';
-import tsogo from '../assets/masks/tsogo.svg';
-import vuvi from '../assets/masks/vuvi.svg';
+import bateke from '../Vista Logos/BATEKE.jpeg';
+import fang from '../Vista Logos/FANG.png';
+import kidumu from '../Vista Logos/KIDUMU.png';
+import kota from '../Vista Logos/KOTA.png';
+import mahongwe from '../Vista Logos/MAHONGWE.jpeg';
+import mbete from '../Vista Logos/MBETE.jpeg';
+import punu from '../Vista Logos/PUNU.jpeg';
+import tsogo from '../Vista Logos/TSOGO.jpeg';
+import vuvi from '../Vista Logos/VUVI.jpeg';
+import defaultLogo from '../Vista Logos/colored-logo.png';
 
 const maskImages: Record<string, string> = {
-  bateke, fang, kidumu, kota, mahongwe, mbete, punu, sira, tsogo, vuvi
+  bateke, fang, kidumu, kota, mahongwe, mbete, punu, tsogo, vuvi
 };
 
 interface TablesViewProps {
@@ -60,7 +60,7 @@ export const TablesView: React.FC<TablesViewProps> = ({ onSelectTable, onBack })
             <div className="table-badge">{table.status === 'EN_ATTENTE' ? 'Occupée' : 'Libre'}</div>
             <div className="table-title">TABLE</div>
             <div className="table-mask-placeholder">
-               <img src={maskImages[table.nom.toLowerCase()]} alt={table.nom} className="table-mask-image" />
+               <img src={maskImages[table.nom.toLowerCase()] || defaultLogo} alt={table.nom} className="table-mask-image" />
             </div>
             <div className="table-name">{table.nom}</div>
             
