@@ -25,7 +25,21 @@ const PORT = process.env.PORT || 5000;
 
 // Security and Rate Limiting
 app.use(helmet()); // Adds CSP, HSTS, X-Frame-Options, etc.
-app.use(cors({ origin: true, credentials: true }));
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:3000', 'https://akibar.vercel.app'];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Assistance-Bar-Id']
+}));
 app.use(express.json());
 app.use(cookieParser());
 
