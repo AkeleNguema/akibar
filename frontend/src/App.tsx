@@ -187,7 +187,6 @@ const AuthWrapper = () => {
                     navigate(me.role === 'PROPRIETAIRE' ? '/owner-dashboard' : '/caisse', { replace: true });
                   } else {
                     console.error("Erreur: getMe() a retourné null après une connexion réussie.");
-                    alert("La connexion a réussi côté serveur, mais votre navigateur a refusé d'enregistrer le cookie de session (problème CORS/SameSite).");
                   }
                 } catch (error) {
                   console.error("Erreur lors de l'appel à getMe:", error);

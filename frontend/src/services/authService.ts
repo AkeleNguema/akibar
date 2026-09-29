@@ -19,6 +19,9 @@ export const loginBar = async (payload: LoginPayload): Promise<AuthResponse> => 
     barId: payload.codeBar.trim(),
     pin: payload.pin.trim(),
   });
+  if (response.data?.token) {
+    localStorage.setItem('token', response.data.token);
+  }
   if (response.data?.bar?.role) {
     localStorage.setItem('offline_role', response.data.bar.role);
   }
@@ -27,6 +30,9 @@ export const loginBar = async (payload: LoginPayload): Promise<AuthResponse> => 
 
 export const ownerLogin = async (payload: { barId: string; pin: string }): Promise<any> => {
   const response = await api.post('/api/auth/owner-login', payload);
+  if (response.data?.token) {
+    localStorage.setItem('token', response.data.token);
+  }
   if (response.data?.bar?.role) {
     localStorage.setItem('offline_role', response.data.bar.role);
   }
@@ -35,6 +41,9 @@ export const ownerLogin = async (payload: { barId: string; pin: string }): Promi
 
 export const loginSuperAdmin = async (payload: { username: string; password: string }): Promise<any> => {
   const response = await api.post('/api/auth/super-admin', payload);
+  if (response.data?.token) {
+    localStorage.setItem('token', response.data.token);
+  }
   if (response.data?.user?.role) {
     localStorage.setItem('offline_role', response.data.user.role);
   }
@@ -42,6 +51,7 @@ export const loginSuperAdmin = async (payload: { username: string; password: str
 };
 
 export const logoutBar = async (): Promise<void> => {
+  localStorage.removeItem('token');
   localStorage.removeItem('offline_role');
   try {
     await api.post('/api/auth/logout');
