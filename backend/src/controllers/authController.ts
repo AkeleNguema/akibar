@@ -166,7 +166,7 @@ export const logout = (req: Request, res: Response): void => {
 
 export const getMe = (req: any, res: Response): void => {
   const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : req.cookies?.token;
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
   if (!token) {
     res.json({ user: null });
     return;

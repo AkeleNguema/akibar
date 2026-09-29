@@ -14,7 +14,8 @@ export const authenticateBar = (
   res: Response,
   next: NextFunction
 ): void => {
-  const token = req.cookies.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
     res.status(401).json({ error: 'Accès non autorisé. Token manquant.' });
@@ -50,7 +51,8 @@ export const requireRole = (allowedRoles: string[]) => {
 };
 
 export const requireSuperAdmin = (req: AuthRequest, res: Response, next: NextFunction): void => {
-  const token = req.cookies.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
   if (!token) {
     res.status(401).json({ error: 'Accès non autorisé.' });
     return;
