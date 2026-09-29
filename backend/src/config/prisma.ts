@@ -12,6 +12,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
   connectionTimeoutMillis: 10000,
   keepAlive: true,
+  // @ts-ignore
   family: 4, // Force IPv4 (Contourne le bug DNS/IPv6 de WSL)
 });
 
