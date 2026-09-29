@@ -59,10 +59,10 @@ export const loginBar = async (req: Request, res: Response): Promise<void> => {
     });
 
     console.log(`[AUTH] 8. loginBar - Token généré, envoi de la réponse.`);
-    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 });
 
     res.json({
       message: 'Connexion réussie !',
+      token,
       bar: {
         id: bar.id,
         nomBar: bar.nomBar,
@@ -88,8 +88,7 @@ export const loginSuperAdmin = async (req: Request, res: Response): Promise<void
   if (adminUser && adminPass && username === adminUser && password === adminPass) {
     console.log(`[AUTH] 2. loginSuperAdmin - Identifiants corrects, génération JWT...`);
     const token = jwt.sign({ role: 'SUPER_ADMIN' }, JWT_SECRET, { expiresIn: '1d' });
-    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', maxAge: 24 * 60 * 60 * 1000 });
-    res.json({ message: 'Connexion Super Admin réussie', user: { role: 'SUPER_ADMIN' } });
+    res.json({ message: 'Connexion Super Admin réussie', token, user: { role: 'SUPER_ADMIN' } });
   } else {
     console.log(`[AUTH] 2. loginSuperAdmin - Identifiants incorrects.`);
     res.status(401).json({ error: 'Identifiants Super Admin incorrects.' });
@@ -144,10 +143,10 @@ export const ownerLogin = async (req: Request, res: Response): Promise<void> => 
     });
 
     console.log(`[AUTH] 8. ownerLogin - Token généré, envoi de la réponse.`);
-    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 });
 
     res.json({
       message: 'Connexion Propriétaire réussie !',
+      token,
       bar: {
         id: bar.id,
         nomBar: bar.nomBar,
@@ -162,12 +161,12 @@ export const ownerLogin = async (req: Request, res: Response): Promise<void> => 
 };
 
 export const logout = (req: Request, res: Response): void => {
-  res.clearCookie('token', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' });
   res.json({ message: 'Déconnexion réussie.' });
 };
 
 export const getMe = (req: any, res: Response): void => {
-  const token = req.cookies.token;
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : req.cookies?.token;
   if (!token) {
     res.json({ user: null });
     return;
