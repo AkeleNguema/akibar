@@ -206,19 +206,19 @@
     .cash-container {
       display: flex;
       flex-direction: column;
-      /* On limite la hauteur pour forcer les deux zones à rester à l'écran */
-      height: calc(100vh - 120px); 
       padding: 0.5rem;
-      gap: 0.5rem;
+      gap: 2rem; /* Séparation claire entre les produits et le ticket */
     }
     .products-grid {
-      flex: 1;
-      overflow-y: auto;
-      padding-bottom: 10px;
+      grid-template-columns: repeat(2, 1fr); /* Force 2 colonnes sur mobile */
+      gap: 0.5rem;
+    }
+    .product-btn-card {
+      min-height: 110px;
+      padding: 0.5rem;
     }
     .cart-panel {
-      flex: 0 0 50%; /* Le ticket prend la moitié inférieure de l'écran */
-      overflow-y: auto;
-      margin-top: 0;
+      border: 2px solid #f59e0b; /* Met le ticket en évidence */
+      box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.3);
     }
   }
