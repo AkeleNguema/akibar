@@ -204,6 +204,21 @@
   
   @media (max-width: 900px) {
     .cash-container {
-      grid-template-columns: 1fr;
+      display: flex;
+      flex-direction: column;
+      /* On limite la hauteur pour forcer les deux zones à rester à l'écran */
+      height: calc(100vh - 120px); 
+      padding: 0.5rem;
+      gap: 0.5rem;
+    }
+    .products-grid {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 10px;
+    }
+    .cart-panel {
+      flex: 0 0 50%; /* Le ticket prend la moitié inférieure de l'écran */
+      overflow-y: auto;
+      margin-top: 0;
     }
   }

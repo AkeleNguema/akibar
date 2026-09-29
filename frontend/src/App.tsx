@@ -54,8 +54,8 @@ const Layout = ({ userRole, handleLogout, quitAssistance, assistanceBarId, onlin
           <img src="/logo.png" alt="Akibar" className="w-10 h-10 object-contain rounded-lg" style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '8px' }} />
         </div>
 
-        <nav className="app-nav" style={{ display: 'flex', flex: 1, justifyContent: 'center', alignItems: 'center', gap: '24px', flexWrap: 'nowrap' }}>
-          <Link to="/caisse" className={`nav-btn ${location.pathname === '/caisse' ? 'active' : ''}`} style={{ textDecoration: 'none', fontSize: '13px' }}>Caisse / Vente</Link>
+        <nav className="app-nav">
+          <Link to="/caisse" className={`nav-btn ${location.pathname === '/caisse' ? 'active' : ''}`}>Caisse / Vente</Link>
           
           {userRole !== 'SERVEUR' && (
             <>
