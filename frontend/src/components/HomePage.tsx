@@ -105,16 +105,12 @@ export const HomePage: React.FC<HomePageProps> = ({
             <h1 className="brand-title" style={{ margin: 0, fontSize: '1.2rem' }}>Akibar</h1>
           </div>
           <div className="footer-links">
-            <button onClick={onNavigateToPrivacy} aria-label="Lire la politique de confidentialité">
-              Politique de Confidentialité
-            </button>
-            <button onClick={onNavigateToTerms} aria-label="Lire les conditions d'utilisation">
-              Conditions d'Utilisation
-            </button>
-          </div>
-          <div className="footer-socials">
-            <a href="mailto:contact@akibar.com" aria-label="Email de contact">contact@akibar.com</a>
-            <a href="https://wa.me/24100000000" aria-label="WhatsApp">WhatsApp</a>
+            <a href="mailto:contact@akibar.com" aria-label="Adresse Email" style={{ color: '#94a3b8', textDecoration: 'none' }}>
+              Adresse Email
+            </a>
+            <a href="https://wa.me/24100000000" aria-label="Contact WhatsApp" style={{ color: '#94a3b8', textDecoration: 'none' }}>
+              Contact WhatsApp
+            </a>
           </div>
         </div>
         <div className="footer-bottom">

@@ -1,22 +1,23 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { HomePage } from './components/HomePage';
-import { Login } from './components/Login';
-import { DebtManager } from './components/DebtManager';
-import { StockManager } from './components/StockManager';
-import { CashRegister } from './components/CashRegister';
-import { ExpenseManager } from './components/ExpenseManager';
-import { ClosureDashboard } from './components/ClosureDashboard';
-import { Dashboard } from './components/Dashboard';
-import { FinancialReport } from './components/FinancialReport';
-import { SuperAdminDashboard } from './components/SuperAdminDashboard';
-import { PrivacyPolicy } from './components/PrivacyPolicy';
-import { TermsOfService } from './components/TermsOfService';
 import CookieConsent from 'react-cookie-consent';
 import { logoutBar, getMe } from './services/authService';
 import { initSyncListeners, isOnline } from './services/syncService';
-import { OwnerDashboard } from './components/OwnerDashboard';
 import './styles/app.css';
+
+const HomePage = lazy(() => import('./components/HomePage').then(m => ({ default: m.HomePage })));
+const Login = lazy(() => import('./components/Login').then(m => ({ default: m.Login })));
+const DebtManager = lazy(() => import('./components/DebtManager').then(m => ({ default: m.DebtManager })));
+const StockManager = lazy(() => import('./components/StockManager').then(m => ({ default: m.StockManager })));
+const CashRegister = lazy(() => import('./components/CashRegister').then(m => ({ default: m.CashRegister })));
+const ExpenseManager = lazy(() => import('./components/ExpenseManager').then(m => ({ default: m.ExpenseManager })));
+const ClosureDashboard = lazy(() => import('./components/ClosureDashboard').then(m => ({ default: m.ClosureDashboard })));
+const Dashboard = lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
+const FinancialReport = lazy(() => import('./components/FinancialReport').then(m => ({ default: m.FinancialReport })));
+const SuperAdminDashboard = lazy(() => import('./components/SuperAdminDashboard').then(m => ({ default: m.SuperAdminDashboard })));
+const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
+const TermsOfService = lazy(() => import('./components/TermsOfService').then(m => ({ default: m.TermsOfService })));
+const OwnerDashboard = lazy(() => import('./components/OwnerDashboard').then(m => ({ default: m.OwnerDashboard })));
 
 const Layout = ({ userRole, handleLogout, quitAssistance, assistanceBarId, onlineStatus }: any) => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -246,7 +247,9 @@ const AuthWrapper = () => {
 function App() {
   return (
     <BrowserRouter>
-      <AuthWrapper />
+      <Suspense fallback={<div style={{ color: 'white', textAlign: 'center', marginTop: '50px' }}>Chargement...</div>}>
+        <AuthWrapper />
+      </Suspense>
       <CookieConsent
         location="bottom"
         buttonText="J'accepte"
