@@ -23,10 +23,14 @@ export const StockManager: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [catNom, setCatNom] = useState('');
   const [catCategorie, setCatCategorie] = useState('Bière');
+  const [catModeConditionnement, setCatModeConditionnement] = useState('CASIER');
   const [catBouteillesParCasier, setCatBouteillesParCasier] = useState<number | ''>(24);
   const [catPrixAchatCasier, setCatPrixAchatCasier] = useState<number | ''>('');
+  const [catPrixAchatUnitaire, setCatPrixAchatUnitaire] = useState<number | ''>('');
   const [catPrixVenteBouteille, setCatPrixVenteBouteille] = useState<number | ''>('');
   const [catSeuilStockBas, setCatSeuilStockBas] = useState<number | ''>(12);
+
+  const [bouteillesCount, setBouteillesCount] = useState<number | ''>('');
 
   const fetchProductsList = async () => {
     try {
@@ -59,22 +63,34 @@ export const StockManager: React.FC = () => {
 
   const handleStockSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedProductId || !casiersCount || Number(casiersCount) <= 0) {
-      setMessage({ text: 'Veuillez saisir un nombre valide de casiers.', type: 'error' });
-      return;
+    if (!selectedProductId) return;
+    const isUnite = products.find(p => p.id === selectedProductId)?.modeConditionnement === 'UNITE';
+    if (isUnite) {
+      if (!bouteillesCount || Number(bouteillesCount) <= 0) {
+        setMessage({ text: 'Veuillez saisir un nombre valide de bouteilles.', type: 'error' });
+        return;
+      }
+    } else {
+      if (!casiersCount || Number(casiersCount) <= 0) {
+        setMessage({ text: 'Veuillez saisir un nombre valide de casiers.', type: 'error' });
+        return;
+      }
     }
 
     setLoading(true);
     setMessage(null);
 
     try {
+      const isUnite = products.find(p => p.id === selectedProductId)?.modeConditionnement === 'UNITE';
       await supplyStock({
         productId: selectedProductId,
-        nombreCasiers: Number(casiersCount),
+        nombreCasiers: isUnite ? 0 : Number(casiersCount),
+        bouteillesIndividuelles: isUnite ? Number(bouteillesCount) : 0,
       });
 
       setMessage({ text: 'Approvisionnement enregistré avec succès !', type: 'success' });
       setCasiersCount('');
+      setBouteillesCount('');
       await fetchProductsList();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
@@ -151,8 +167,10 @@ export const StockManager: React.FC = () => {
       const payload = {
         nom: catNom,
         categorie: catCategorie,
-        bouteillesParCasier: Number(catBouteillesParCasier),
-        prixAchatCasier: Number(catPrixAchatCasier),
+        modeConditionnement: catModeConditionnement,
+        bouteillesParCasier: catModeConditionnement === 'UNITE' ? null : Number(catBouteillesParCasier),
+        prixAchatCasier: catModeConditionnement === 'UNITE' ? null : Number(catPrixAchatCasier),
+        prixAchatUnitaire: catModeConditionnement === 'UNITE' ? Number(catPrixAchatUnitaire) : null,
         prixVenteBouteille: Number(catPrixVenteBouteille),
         seuilStockBas: Number(catSeuilStockBas)
       };
@@ -191,8 +209,10 @@ export const StockManager: React.FC = () => {
     setEditingProduct(p);
     setCatNom(p.nom);
     setCatCategorie(p.categorie);
-    setCatBouteillesParCasier(p.bouteillesParCasier);
-    setCatPrixAchatCasier(p.prixAchatCasier);
+    setCatModeConditionnement(p.modeConditionnement || 'CASIER');
+    setCatBouteillesParCasier(p.bouteillesParCasier || 24);
+    setCatPrixAchatCasier(p.prixAchatCasier || '');
+    setCatPrixAchatUnitaire(p.prixAchatUnitaire || '');
     setCatPrixVenteBouteille(p.prixVenteBouteille);
     setCatSeuilStockBas(p.seuilStockBas);
   };
@@ -201,8 +221,10 @@ export const StockManager: React.FC = () => {
     setEditingProduct(null);
     setCatNom('');
     setCatCategorie('Bière');
+    setCatModeConditionnement('CASIER');
     setCatBouteillesParCasier(24);
     setCatPrixAchatCasier('');
+    setCatPrixAchatUnitaire('');
     setCatPrixVenteBouteille('');
     setCatSeuilStockBas(12);
   };
@@ -225,13 +247,29 @@ export const StockManager: React.FC = () => {
             </select>
           </div>
           <div className="form-group">
-            <label>Bouteilles par casier</label>
-            <input type="number" className="form-input-stock" value={catBouteillesParCasier} onChange={e => setCatBouteillesParCasier(e.target.value === '' ? '' : Number(e.target.value))} required />
+            <label>Mode de conditionnement</label>
+            <select className="form-select" value={catModeConditionnement} onChange={e => setCatModeConditionnement(e.target.value)} required>
+              <option value="CASIER">Par casier/pack</option>
+              <option value="UNITE">À l'unité</option>
+            </select>
           </div>
-          <div className="form-group">
-            <label>Prix d'achat casier (FCFA)</label>
-            <input type="number" className="form-input-stock" value={catPrixAchatCasier} onChange={e => setCatPrixAchatCasier(e.target.value === '' ? '' : Number(e.target.value))} required />
-          </div>
+          {catModeConditionnement === 'CASIER' ? (
+            <>
+              <div className="form-group">
+                <label>Bouteilles par casier/pack</label>
+                <input type="number" className="form-input-stock" value={catBouteillesParCasier} onChange={e => setCatBouteillesParCasier(e.target.value === '' ? '' : Number(e.target.value))} required />
+              </div>
+              <div className="form-group">
+                <label>Prix d'achat casier/pack (FCFA)</label>
+                <input type="number" className="form-input-stock" value={catPrixAchatCasier} onChange={e => setCatPrixAchatCasier(e.target.value === '' ? '' : Number(e.target.value))} required />
+              </div>
+            </>
+          ) : (
+            <div className="form-group">
+              <label>Prix d'achat unitaire (FCFA)</label>
+              <input type="number" className="form-input-stock" value={catPrixAchatUnitaire} onChange={e => setCatPrixAchatUnitaire(e.target.value === '' ? '' : Number(e.target.value))} required />
+            </div>
+          )}
           <div className="form-group">
             <label>Prix de vente bouteille (FCFA)</label>
             <input type="number" className="form-input-stock" value={catPrixVenteBouteille} onChange={e => setCatPrixVenteBouteille(e.target.value === '' ? '' : Number(e.target.value))} required />
@@ -254,36 +292,55 @@ export const StockManager: React.FC = () => {
       </div>
 
       <div className="stock-card">
-        <h3>Entrée de Stock (Casiers)</h3>
+        <h3>Entrée de Stock (Approvisionnement)</h3>
         <form onSubmit={handleStockSubmit} className="stock-form">
           <div className="form-group">
-            <label>Boisson / Casier Sobraga</label>
+            <label>Boisson</label>
             <select
               className="form-select"
               value={selectedProductId}
-              onChange={(e) => setSelectedProductId(e.target.value)}
+              onChange={(e) => {
+                setSelectedProductId(e.target.value);
+                setCasiersCount('');
+                setBouteillesCount('');
+              }}
               required
             >
               {products.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.nom} ({p.bouteillesParCasier || 24} btls/casier)
+                  {p.nom} {p.modeConditionnement === 'CASIER' ? `(${p.bouteillesParCasier || 24} btls/casier)` : `(À l'unité)`}
                 </option>
               ))}
             </select>
           </div>
 
-          <div className="form-group">
-            <label>Nombre de Casiers</label>
-            <input
-              type="number"
-              min="1"
-              placeholder="Ex : 5"
-              className="form-input-stock"
-              value={casiersCount}
-              onChange={(e) => setCasiersCount(e.target.value === '' ? '' : Number(e.target.value))}
-              required
-            />
-          </div>
+          {products.find(p => p.id === selectedProductId)?.modeConditionnement === 'UNITE' ? (
+            <div className="form-group">
+              <label>Nombre d'unités (bouteilles)</label>
+              <input
+                type="number"
+                min="1"
+                placeholder="Ex : 12"
+                className="form-input-stock"
+                value={bouteillesCount}
+                onChange={(e) => setBouteillesCount(e.target.value === '' ? '' : Number(e.target.value))}
+                required
+              />
+            </div>
+          ) : (
+            <div className="form-group">
+              <label>Nombre de Casiers/Packs</label>
+              <input
+                type="number"
+                min="1"
+                placeholder="Ex : 5"
+                className="form-input-stock"
+                value={casiersCount}
+                onChange={(e) => setCasiersCount(e.target.value === '' ? '' : Number(e.target.value))}
+                required
+              />
+            </div>
+          )}
 
           <button type="submit" className="submit-stock-btn" disabled={loading}>
             {loading ? 'Ajout...' : 'Enregistrer'}
@@ -377,12 +434,20 @@ export const StockManager: React.FC = () => {
                       <span className="badge-bouteilles">{totalBouteilles} btls</span>
                     </td>
                     <td>
-                      <span className="badge-casiers">
-                        {casiers} c. {restBouteilles > 0 ? `+ ${restBouteilles} b.` : ''}
-                      </span>
+                      {product.modeConditionnement === 'UNITE' ? (
+                        <span style={{ color: '#94a3b8' }}>N/A</span>
+                      ) : (
+                        <span className="badge-casiers">
+                          {casiers} c. {restBouteilles > 0 ? `+ ${restBouteilles} b.` : ''}
+                        </span>
+                      )}
                     </td>
                     <td>
-                      <span style={{ color: '#94a3b8', fontWeight: 600 }}>{casiersVides} casiers</span>
+                      {product.modeConditionnement === 'UNITE' ? (
+                        <span style={{ color: '#94a3b8' }}>N/A</span>
+                      ) : (
+                        <span style={{ color: '#94a3b8', fontWeight: 600 }}>{casiersVides} casiers</span>
+                      )}
                     </td>
                     <td>
                       <button type="button" onClick={() => editProduct(product)} style={{ marginRight: '5px', background: '#3b82f6', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>Modifier</button>

@@ -98,20 +98,20 @@ export const createBar = async (req: AuthRequest, res: Response) => {
     });
 
     const defaultProducts = [
-      { nom: 'Castel 65cl', categorie: 'Bière', bouteillesParCasier: 24, prixAchatCasier: 10000, prixVenteBouteille: 600, seuilStockBas: 24 },
-      { nom: 'Régab 65cl', categorie: 'Bière', bouteillesParCasier: 24, prixAchatCasier: 10000, prixVenteBouteille: 600, seuilStockBas: 24 },
-      { nom: 'Coca-Cola 60cl', categorie: 'Soda', bouteillesParCasier: 24, prixAchatCasier: 9000, prixVenteBouteille: 500, seuilStockBas: 24 },
-      { nom: 'Fanta 60cl', categorie: 'Soda', bouteillesParCasier: 24, prixAchatCasier: 9000, prixVenteBouteille: 500, seuilStockBas: 24 },
-      { nom: 'Andza 1.5L', categorie: 'Eau', bouteillesParCasier: 12, prixAchatCasier: 6000, prixVenteBouteille: 800, seuilStockBas: 12 },
-      { nom: 'Awa 1.5L', categorie: 'Eau', bouteillesParCasier: 12, prixAchatCasier: 6000, prixVenteBouteille: 800, seuilStockBas: 12 },
-      { nom: 'Bordeaux Rouge', categorie: 'Vin rouge', bouteillesParCasier: 6, prixAchatCasier: 12000, prixVenteBouteille: 3000, seuilStockBas: 6 },
-      { nom: 'Martini Rouge', categorie: 'Vermouth', bouteillesParCasier: 6, prixAchatCasier: 25000, prixVenteBouteille: 6000, seuilStockBas: 6 },
-      { nom: 'JB', categorie: 'Whisky', bouteillesParCasier: 6, prixAchatCasier: 40000, prixVenteBouteille: 10000, seuilStockBas: 6 },
-      { nom: 'Havana Club', categorie: 'Rhum', bouteillesParCasier: 6, prixAchatCasier: 35000, prixVenteBouteille: 8000, seuilStockBas: 6 },
-      { nom: 'Mojito (Maison)', categorie: 'Cocktail', bouteillesParCasier: 1, prixAchatCasier: 2000, prixVenteBouteille: 3500, seuilStockBas: 10 },
-      { nom: 'Virgin Mojito', categorie: 'Mocktail', bouteillesParCasier: 1, prixAchatCasier: 1500, prixVenteBouteille: 2500, seuilStockBas: 10 },
-      { nom: 'Chardonnay Blanc', categorie: 'Vin blanc', bouteillesParCasier: 6, prixAchatCasier: 15000, prixVenteBouteille: 3500, seuilStockBas: 6 },
-      { nom: "Cabernet d'Anjou", categorie: 'Rosé', bouteillesParCasier: 6, prixAchatCasier: 15000, prixVenteBouteille: 3500, seuilStockBas: 6 }
+      { nom: 'Castel 65cl', categorie: 'Bière', modeConditionnement: 'CASIER', bouteillesParCasier: 24, prixAchatCasier: 10000, prixAchatUnitaire: null, prixVenteBouteille: 600, seuilStockBas: 24 },
+      { nom: 'Régab 65cl', categorie: 'Bière', modeConditionnement: 'CASIER', bouteillesParCasier: 24, prixAchatCasier: 10000, prixAchatUnitaire: null, prixVenteBouteille: 600, seuilStockBas: 24 },
+      { nom: 'Coca-Cola 60cl', categorie: 'Soda', modeConditionnement: 'CASIER', bouteillesParCasier: 24, prixAchatCasier: 9000, prixAchatUnitaire: null, prixVenteBouteille: 500, seuilStockBas: 24 },
+      { nom: 'Fanta 60cl', categorie: 'Soda', modeConditionnement: 'CASIER', bouteillesParCasier: 24, prixAchatCasier: 9000, prixAchatUnitaire: null, prixVenteBouteille: 500, seuilStockBas: 24 },
+      { nom: 'Andza 1.5L', categorie: 'Eau', modeConditionnement: 'CASIER', bouteillesParCasier: 12, prixAchatCasier: 6000, prixAchatUnitaire: null, prixVenteBouteille: 800, seuilStockBas: 12 },
+      { nom: 'Awa 1.5L', categorie: 'Eau', modeConditionnement: 'CASIER', bouteillesParCasier: 12, prixAchatCasier: 6000, prixAchatUnitaire: null, prixVenteBouteille: 800, seuilStockBas: 12 },
+      { nom: 'Bordeaux Rouge', categorie: 'Vin rouge', modeConditionnement: 'UNITE', bouteillesParCasier: null, prixAchatCasier: null, prixAchatUnitaire: 2000, prixVenteBouteille: 3000, seuilStockBas: 6 },
+      { nom: 'Martini Rouge', categorie: 'Vermouth', modeConditionnement: 'UNITE', bouteillesParCasier: null, prixAchatCasier: null, prixAchatUnitaire: 4000, prixVenteBouteille: 6000, seuilStockBas: 6 },
+      { nom: 'JB', categorie: 'Whisky', modeConditionnement: 'UNITE', bouteillesParCasier: null, prixAchatCasier: null, prixAchatUnitaire: 6600, prixVenteBouteille: 10000, seuilStockBas: 6 },
+      { nom: 'Havana Club', categorie: 'Rhum', modeConditionnement: 'UNITE', bouteillesParCasier: null, prixAchatCasier: null, prixAchatUnitaire: 5800, prixVenteBouteille: 8000, seuilStockBas: 6 },
+      { nom: 'Mojito (Maison)', categorie: 'Cocktail', modeConditionnement: 'UNITE', bouteillesParCasier: null, prixAchatCasier: null, prixAchatUnitaire: 2000, prixVenteBouteille: 3500, seuilStockBas: 10 },
+      { nom: 'Virgin Mojito', categorie: 'Mocktail', modeConditionnement: 'UNITE', bouteillesParCasier: null, prixAchatCasier: null, prixAchatUnitaire: 1500, prixVenteBouteille: 2500, seuilStockBas: 10 },
+      { nom: 'Chardonnay Blanc', categorie: 'Vin blanc', modeConditionnement: 'UNITE', bouteillesParCasier: null, prixAchatCasier: null, prixAchatUnitaire: 2500, prixVenteBouteille: 3500, seuilStockBas: 6 },
+      { nom: "Cabernet d'Anjou", categorie: 'Rosé', modeConditionnement: 'UNITE', bouteillesParCasier: null, prixAchatCasier: null, prixAchatUnitaire: 2500, prixVenteBouteille: 3500, seuilStockBas: 6 }
     ];
 
     for (const prod of defaultProducts) {
@@ -120,8 +120,10 @@ export const createBar = async (req: AuthRequest, res: Response) => {
           barId: newBar.id,
           nom: prod.nom,
           categorie: prod.categorie,
+          modeConditionnement: prod.modeConditionnement,
           bouteillesParCasier: prod.bouteillesParCasier,
           prixAchatCasier: prod.prixAchatCasier,
+          prixAchatUnitaire: prod.prixAchatUnitaire,
           prixVenteBouteille: prod.prixVenteBouteille,
           seuilStockBas: prod.seuilStockBas
         }

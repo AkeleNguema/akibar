@@ -23,9 +23,10 @@ export const supplyStock = async (req: any, res: Response) => {
       return res.status(404).json({ message: "Produit non trouvé" });
     }
 
-    const bouteillesAjoutees = 
-      ((parseInt(nombreCasiers) || 0) * product.bouteillesParCasier) + 
-      (parseInt(bouteillesIndividuelles) || 0);
+    const bpc = product.bouteillesParCasier || 1;
+    const bouteillesAjoutees = product.modeConditionnement === 'UNITE'
+      ? (parseInt(bouteillesIndividuelles) || 0) + (parseInt(nombreCasiers) || 0)
+      : ((parseInt(nombreCasiers) || 0) * bpc) + (parseInt(bouteillesIndividuelles) || 0);
 
     const stockUpdated = await prisma.stock.upsert({
       where: {

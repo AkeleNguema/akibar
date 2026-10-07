@@ -42,7 +42,14 @@ export const createDebt = async (req: any, res: Response) => {
           }
 
           const prixUnitaireVente = product.prixVenteBouteille;
-          const prixUnitaireAchat = product.prixAchatCasier / product.bouteillesParCasier;
+          let prixUnitaireAchat = 0;
+          if (product.modeConditionnement === 'UNITE') {
+            prixUnitaireAchat = product.prixAchatUnitaire || 0;
+          } else {
+            const bpc = product.bouteillesParCasier || 1;
+            const pac = product.prixAchatCasier || 0;
+            prixUnitaireAchat = bpc > 0 ? pac / bpc : 0;
+          }
           calculatedAmount += prixUnitaireVente * item.quantite;
 
           await tx.stock.update({

@@ -21,6 +21,7 @@ export interface StockItem {
 export interface SupplyPayload {
   productId: string;
   nombreCasiers: number;
+  bouteillesIndividuelles?: number;
 }
 
 // Récupérer le catalogue des produits

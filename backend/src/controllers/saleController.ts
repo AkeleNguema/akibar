@@ -69,7 +69,14 @@ export const createSale = async (req: AuthRequest, res: Response): Promise<void>
 
           // Calcul des prix
           const prixUnitaireVente = product.prixVenteBouteille;
-          const prixUnitaireAchat = product.bouteillesParCasier > 0 ? (product.prixAchatCasier / product.bouteillesParCasier) : 0;
+          let prixUnitaireAchat = 0;
+          if (product.modeConditionnement === 'UNITE') {
+            prixUnitaireAchat = product.prixAchatUnitaire || 0;
+          } else {
+            const bpc = product.bouteillesParCasier || 1;
+            const pac = product.prixAchatCasier || 0;
+            prixUnitaireAchat = bpc > 0 ? pac / bpc : 0;
+          }
           calculatedTotal += prixUnitaireVente * quantite;
 
           // Déduire les bouteilles vendues du stock

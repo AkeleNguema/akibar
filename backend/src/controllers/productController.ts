@@ -21,13 +21,13 @@ export const getBarProducts = async (req: any, res: Response): Promise<void> => 
 
     if (products.length === 0) {
       const defaultCatalogue = [
-        { nom: 'Régab', categorie: 'Bières', bouteillesParCasier: 24, prixAchatCasier: 10000, prixVenteBouteille: 600, seuilStockBas: 2 },
-        { nom: 'Castel', categorie: 'Bières', bouteillesParCasier: 24, prixAchatCasier: 12000, prixVenteBouteille: 700, seuilStockBas: 2 },
-        { nom: '33 Export', categorie: 'Bières', bouteillesParCasier: 24, prixAchatCasier: 10000, prixVenteBouteille: 600, seuilStockBas: 2 },
-        { nom: 'Beaufort', categorie: 'Bières', bouteillesParCasier: 24, prixAchatCasier: 12000, prixVenteBouteille: 700, seuilStockBas: 2 },
-        { nom: 'Coca Cola', categorie: 'Sucreries', bouteillesParCasier: 24, prixAchatCasier: 9000, prixVenteBouteille: 500, seuilStockBas: 2 },
-        { nom: 'Fanta', categorie: 'Sucreries', bouteillesParCasier: 24, prixAchatCasier: 9000, prixVenteBouteille: 500, seuilStockBas: 2 },
-        { nom: 'Djino', categorie: 'Sucreries', bouteillesParCasier: 24, prixAchatCasier: 9000, prixVenteBouteille: 500, seuilStockBas: 2 },
+        { nom: 'Régab', categorie: 'Bières', modeConditionnement: 'CASIER', bouteillesParCasier: 24, prixAchatCasier: 10000, prixAchatUnitaire: null, prixVenteBouteille: 600, seuilStockBas: 2 },
+        { nom: 'Castel', categorie: 'Bières', modeConditionnement: 'CASIER', bouteillesParCasier: 24, prixAchatCasier: 12000, prixAchatUnitaire: null, prixVenteBouteille: 700, seuilStockBas: 2 },
+        { nom: '33 Export', categorie: 'Bières', modeConditionnement: 'CASIER', bouteillesParCasier: 24, prixAchatCasier: 10000, prixAchatUnitaire: null, prixVenteBouteille: 600, seuilStockBas: 2 },
+        { nom: 'Beaufort', categorie: 'Bières', modeConditionnement: 'CASIER', bouteillesParCasier: 24, prixAchatCasier: 12000, prixAchatUnitaire: null, prixVenteBouteille: 700, seuilStockBas: 2 },
+        { nom: 'Coca Cola', categorie: 'Sucreries', modeConditionnement: 'CASIER', bouteillesParCasier: 24, prixAchatCasier: 9000, prixAchatUnitaire: null, prixVenteBouteille: 500, seuilStockBas: 2 },
+        { nom: 'Fanta', categorie: 'Sucreries', modeConditionnement: 'CASIER', bouteillesParCasier: 24, prixAchatCasier: 9000, prixAchatUnitaire: null, prixVenteBouteille: 500, seuilStockBas: 2 },
+        { nom: 'Djino', categorie: 'Sucreries', modeConditionnement: 'CASIER', bouteillesParCasier: 24, prixAchatCasier: 9000, prixAchatUnitaire: null, prixVenteBouteille: 500, seuilStockBas: 2 },
       ];
 
       await prisma.product.createMany({
@@ -60,7 +60,7 @@ export const addProduct = async (req: any, res: Response): Promise<void> => {
     res.status(401).json({ error: 'Établissement non authentifié.' });
     return;
   }
-  const { nom, categorie, bouteillesParCasier, prixAchatCasier, prixVenteBouteille, seuilStockBas } = req.body;
+  const { nom, categorie, modeConditionnement, bouteillesParCasier, prixAchatCasier, prixAchatUnitaire, prixVenteBouteille, seuilStockBas } = req.body;
   
   try {
     const newProduct = await prisma.product.create({
@@ -68,8 +68,10 @@ export const addProduct = async (req: any, res: Response): Promise<void> => {
         barId,
         nom,
         categorie,
-        bouteillesParCasier: Number(bouteillesParCasier),
-        prixAchatCasier: Number(prixAchatCasier),
+        modeConditionnement: modeConditionnement || 'CASIER',
+        bouteillesParCasier: modeConditionnement === 'UNITE' ? null : Number(bouteillesParCasier),
+        prixAchatCasier: modeConditionnement === 'UNITE' ? null : Number(prixAchatCasier),
+        prixAchatUnitaire: modeConditionnement === 'UNITE' ? Number(prixAchatUnitaire) : null,
         prixVenteBouteille: Number(prixVenteBouteille),
         seuilStockBas: Number(seuilStockBas) || 12
       }
@@ -102,7 +104,7 @@ export const updateProduct = async (req: any, res: Response): Promise<void> => {
     return;
   }
   const id = req.params.id;
-  const { nom, categorie, bouteillesParCasier, prixAchatCasier, prixVenteBouteille, seuilStockBas } = req.body;
+  const { nom, categorie, modeConditionnement, bouteillesParCasier, prixAchatCasier, prixAchatUnitaire, prixVenteBouteille, seuilStockBas } = req.body;
   
   try {
     const updated = await prisma.product.update({
@@ -110,8 +112,10 @@ export const updateProduct = async (req: any, res: Response): Promise<void> => {
       data: {
         nom,
         categorie,
-        bouteillesParCasier: Number(bouteillesParCasier),
-        prixAchatCasier: Number(prixAchatCasier),
+        modeConditionnement: modeConditionnement || 'CASIER',
+        bouteillesParCasier: modeConditionnement === 'UNITE' ? null : Number(bouteillesParCasier),
+        prixAchatCasier: modeConditionnement === 'UNITE' ? null : Number(prixAchatCasier),
+        prixAchatUnitaire: modeConditionnement === 'UNITE' ? Number(prixAchatUnitaire) : null,
         prixVenteBouteille: Number(prixVenteBouteille),
         seuilStockBas: Number(seuilStockBas)
       }

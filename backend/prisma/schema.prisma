@@ -36,8 +36,10 @@ model Product {
   barId                String
   nom                  String   // ex: "Régab 65cl"
   categorie            String   @default("Bière") // Bière, Soda, Jus, Spiritueux
-  bouteillesParCasier  Int      @default(24)
-  prixAchatCasier      Float    // ex: 10000 FCFA
+  modeConditionnement  String   @default("CASIER") // "CASIER", "UNITE"
+  bouteillesParCasier  Int?     @default(24)
+  prixAchatCasier      Float?   // ex: 10000 FCFA
+  prixAchatUnitaire    Float?   // Prix unitaire d'achat si modeConditionnement = UNITE
   prixVenteBouteille   Float    // ex: 600 FCFA
   seuilStockBas        Int      @default(12) // Alerte en bouteilles
 
