@@ -111,7 +111,7 @@ export const createBar = async (req: AuthRequest, res: Response) => {
       { nom: 'Mojito (Maison)', categorie: 'Cocktail', bouteillesParCasier: 1, prixAchatCasier: 2000, prixVenteBouteille: 3500, seuilStockBas: 10 },
       { nom: 'Virgin Mojito', categorie: 'Mocktail', bouteillesParCasier: 1, prixAchatCasier: 1500, prixVenteBouteille: 2500, seuilStockBas: 10 },
       { nom: 'Chardonnay Blanc', categorie: 'Vin blanc', bouteillesParCasier: 6, prixAchatCasier: 15000, prixVenteBouteille: 3500, seuilStockBas: 6 },
-      { nom: 'Cabernet d\\'Anjou', categorie: 'Rosé', bouteillesParCasier: 6, prixAchatCasier: 15000, prixVenteBouteille: 3500, seuilStockBas: 6 }
+      { nom: "Cabernet d'Anjou", categorie: 'Rosé', bouteillesParCasier: 6, prixAchatCasier: 15000, prixVenteBouteille: 3500, seuilStockBas: 6 }
     ];
 
     for (const prod of defaultProducts) {
