@@ -128,11 +128,16 @@ export const createBar = async (req: AuthRequest, res: Response) => {
           seuilStockBas: prod.seuilStockBas
         }
       });
+      
+      const initialStock = prod.modeConditionnement === 'UNITE' 
+        ? 50 
+        : (prod.bouteillesParCasier || 24) * 2; // 2 casiers par défaut
+
       await prisma.stock.create({
         data: {
           barId: newBar.id,
           productId: createdProd.id,
-          quantiteBouteilles: 0,
+          quantiteBouteilles: initialStock,
           casiersVides: 0
         }
       });

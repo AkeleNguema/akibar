@@ -21,21 +21,40 @@ export const getBarProducts = async (req: any, res: Response): Promise<void> => 
 
     if (products.length === 0) {
       const defaultCatalogue = [
-        { nom: 'Régab', categorie: 'Bières', modeConditionnement: 'CASIER', bouteillesParCasier: 24, prixAchatCasier: 10000, prixAchatUnitaire: null, prixVenteBouteille: 600, seuilStockBas: 2 },
-        { nom: 'Castel', categorie: 'Bières', modeConditionnement: 'CASIER', bouteillesParCasier: 24, prixAchatCasier: 12000, prixAchatUnitaire: null, prixVenteBouteille: 700, seuilStockBas: 2 },
-        { nom: '33 Export', categorie: 'Bières', modeConditionnement: 'CASIER', bouteillesParCasier: 24, prixAchatCasier: 10000, prixAchatUnitaire: null, prixVenteBouteille: 600, seuilStockBas: 2 },
-        { nom: 'Beaufort', categorie: 'Bières', modeConditionnement: 'CASIER', bouteillesParCasier: 24, prixAchatCasier: 12000, prixAchatUnitaire: null, prixVenteBouteille: 700, seuilStockBas: 2 },
-        { nom: 'Coca Cola', categorie: 'Sucreries', modeConditionnement: 'CASIER', bouteillesParCasier: 24, prixAchatCasier: 9000, prixAchatUnitaire: null, prixVenteBouteille: 500, seuilStockBas: 2 },
-        { nom: 'Fanta', categorie: 'Sucreries', modeConditionnement: 'CASIER', bouteillesParCasier: 24, prixAchatCasier: 9000, prixAchatUnitaire: null, prixVenteBouteille: 500, seuilStockBas: 2 },
-        { nom: 'Djino', categorie: 'Sucreries', modeConditionnement: 'CASIER', bouteillesParCasier: 24, prixAchatCasier: 9000, prixAchatUnitaire: null, prixVenteBouteille: 500, seuilStockBas: 2 },
+        { nom: 'Castel 65cl', categorie: 'Bière', modeConditionnement: 'CASIER', bouteillesParCasier: 24, prixAchatCasier: 10000, prixAchatUnitaire: null, prixVenteBouteille: 600, seuilStockBas: 24 },
+        { nom: 'Régab 65cl', categorie: 'Bière', modeConditionnement: 'CASIER', bouteillesParCasier: 24, prixAchatCasier: 10000, prixAchatUnitaire: null, prixVenteBouteille: 600, seuilStockBas: 24 },
+        { nom: 'Coca-Cola 60cl', categorie: 'Soda', modeConditionnement: 'CASIER', bouteillesParCasier: 24, prixAchatCasier: 9000, prixAchatUnitaire: null, prixVenteBouteille: 500, seuilStockBas: 24 },
+        { nom: 'Andza 1.5L', categorie: 'Eau', modeConditionnement: 'CASIER', bouteillesParCasier: 12, prixAchatCasier: 6000, prixAchatUnitaire: null, prixVenteBouteille: 800, seuilStockBas: 12 },
+        { nom: 'Bordeaux Rouge', categorie: 'Vin rouge', modeConditionnement: 'UNITE', bouteillesParCasier: null, prixAchatCasier: null, prixAchatUnitaire: 2000, prixVenteBouteille: 3000, seuilStockBas: 6 }
       ];
 
-      await prisma.product.createMany({
-        data: defaultCatalogue.map(p => ({
-          ...p,
-          barId
-        }))
-      });
+      for (const prod of defaultCatalogue) {
+        const createdProd = await prisma.product.create({
+          data: {
+            barId,
+            nom: prod.nom,
+            categorie: prod.categorie,
+            modeConditionnement: prod.modeConditionnement,
+            bouteillesParCasier: prod.bouteillesParCasier,
+            prixAchatCasier: prod.prixAchatCasier,
+            prixAchatUnitaire: prod.prixAchatUnitaire,
+            prixVenteBouteille: prod.prixVenteBouteille,
+            seuilStockBas: prod.seuilStockBas
+          }
+        });
+        const initialStock = prod.modeConditionnement === 'UNITE' 
+          ? 50 
+          : (prod.bouteillesParCasier || 24) * 2;
+
+        await prisma.stock.create({
+          data: {
+            barId,
+            productId: createdProd.id,
+            quantiteBouteilles: initialStock,
+            casiersVides: 0
+          }
+        });
+      }
 
       products = await prisma.product.findMany({
         where: { barId, isActive: true },
