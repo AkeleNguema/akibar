@@ -66,6 +66,13 @@ export const createBar = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ error: 'Le PIN Serveur doit contenir exactement 4 chiffres.' });
     }
 
+    const existingBar = await prisma.bar.findFirst({
+      where: { nomBar: { equals: nomBar, mode: 'insensitive' } }
+    });
+    if (existingBar) {
+      return res.status(400).json({ error: 'Un bar avec ce nom existe déjà.' });
+    }
+
     const id = generateBarId(nomBar);
 
     const pinHash = await bcrypt.hash(pinGerant, 10);
@@ -89,6 +96,45 @@ export const createBar = async (req: AuthRequest, res: Response) => {
         status: 'ACTIVE'
       }
     });
+
+    const defaultProducts = [
+      { nom: 'Castel 65cl', categorie: 'Bière', bouteillesParCasier: 24, prixAchatCasier: 10000, prixVenteBouteille: 600, seuilStockBas: 24 },
+      { nom: 'Régab 65cl', categorie: 'Bière', bouteillesParCasier: 24, prixAchatCasier: 10000, prixVenteBouteille: 600, seuilStockBas: 24 },
+      { nom: 'Coca-Cola 60cl', categorie: 'Soda', bouteillesParCasier: 24, prixAchatCasier: 9000, prixVenteBouteille: 500, seuilStockBas: 24 },
+      { nom: 'Fanta 60cl', categorie: 'Soda', bouteillesParCasier: 24, prixAchatCasier: 9000, prixVenteBouteille: 500, seuilStockBas: 24 },
+      { nom: 'Andza 1.5L', categorie: 'Eau', bouteillesParCasier: 12, prixAchatCasier: 6000, prixVenteBouteille: 800, seuilStockBas: 12 },
+      { nom: 'Awa 1.5L', categorie: 'Eau', bouteillesParCasier: 12, prixAchatCasier: 6000, prixVenteBouteille: 800, seuilStockBas: 12 },
+      { nom: 'Bordeaux Rouge', categorie: 'Vin rouge', bouteillesParCasier: 6, prixAchatCasier: 12000, prixVenteBouteille: 3000, seuilStockBas: 6 },
+      { nom: 'Martini Rouge', categorie: 'Vermouth', bouteillesParCasier: 6, prixAchatCasier: 25000, prixVenteBouteille: 6000, seuilStockBas: 6 },
+      { nom: 'JB', categorie: 'Whisky', bouteillesParCasier: 6, prixAchatCasier: 40000, prixVenteBouteille: 10000, seuilStockBas: 6 },
+      { nom: 'Havana Club', categorie: 'Rhum', bouteillesParCasier: 6, prixAchatCasier: 35000, prixVenteBouteille: 8000, seuilStockBas: 6 },
+      { nom: 'Mojito (Maison)', categorie: 'Cocktail', bouteillesParCasier: 1, prixAchatCasier: 2000, prixVenteBouteille: 3500, seuilStockBas: 10 },
+      { nom: 'Virgin Mojito', categorie: 'Mocktail', bouteillesParCasier: 1, prixAchatCasier: 1500, prixVenteBouteille: 2500, seuilStockBas: 10 },
+      { nom: 'Chardonnay Blanc', categorie: 'Vin blanc', bouteillesParCasier: 6, prixAchatCasier: 15000, prixVenteBouteille: 3500, seuilStockBas: 6 },
+      { nom: 'Cabernet d\\'Anjou', categorie: 'Rosé', bouteillesParCasier: 6, prixAchatCasier: 15000, prixVenteBouteille: 3500, seuilStockBas: 6 }
+    ];
+
+    for (const prod of defaultProducts) {
+      const createdProd = await prisma.product.create({
+        data: {
+          barId: newBar.id,
+          nom: prod.nom,
+          categorie: prod.categorie,
+          bouteillesParCasier: prod.bouteillesParCasier,
+          prixAchatCasier: prod.prixAchatCasier,
+          prixVenteBouteille: prod.prixVenteBouteille,
+          seuilStockBas: prod.seuilStockBas
+        }
+      });
+      await prisma.stock.create({
+        data: {
+          barId: newBar.id,
+          productId: createdProd.id,
+          quantiteBouteilles: 0,
+          casiersVides: 0
+        }
+      });
+    }
 
     res.status(201).json({ message: 'Bar créé avec succès', bar: newBar });
   } catch (error: any) {

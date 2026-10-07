@@ -101,6 +101,16 @@ export const createSale = async (req: AuthRequest, res: Response): Promise<void>
                 details: `${quantite}x ${product.nom} déclaré comme ${item.typeVente}`
               }
             });
+            if (item.typeVente === 'CASSE') {
+              await tx.incident.create({
+                data: {
+                  barId,
+                  productId: item.productId,
+                  quantite: quantite,
+                  note: 'Casse déclarée en caisse'
+                }
+              });
+            }
             // Pour perte/casse/offert, on ne compte pas ça dans le total de la vente
             calculatedTotal -= (prixUnitaireVente * quantite);
           }

@@ -27,6 +27,7 @@ model Bar {
   cashClosings   CashClosing[]
   auditLogs      AuditLog[]
   pushSubscriptions PushSubscription[]
+  incidents      Incident[]
 }
 
 //  Catalogue des Produits (Boissons)
@@ -43,6 +44,8 @@ model Product {
   bar                  Bar        @relation(fields: [barId], references: [id], onDelete: Cascade)
   stocks               Stock[]
   saleItems            SaleItem[]
+  isActive             Boolean    @default(true)
+  incidents            Incident[]
 
   @@unique([barId, nom])
 }
@@ -171,4 +174,17 @@ model PushSubscription {
   createdAt DateTime @default(now())
 
   bar       Bar      @relation(fields: [barId], references: [id], onDelete: Cascade)
+}
+
+// Suivi des Incidents (ex: Bouteille cassée)
+model Incident {
+  id        String   @id @default(uuid())
+  barId     String
+  productId String
+  quantite  Int
+  note      String?
+  createdAt DateTime @default(now())
+
+  bar       Bar      @relation(fields: [barId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
 }

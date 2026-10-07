@@ -24,11 +24,11 @@ export const SuperAdminDashboard: React.FC<{ onLogout: () => void, onEnterAssist
   const [editingBar, setEditingBar] = useState<Bar | null>(null);
   const [viewingBar, setViewingBar] = useState<Bar | null>(null);
 
-  // Form state (shared between create and edit where applicable)
   const [formData, setFormData] = useState({
     nomBar: '',
     pinGerant: '',
     pinProprietaire: '',
+    pinServeur: '',
     status: 'ACTIVE'
   });
 
@@ -69,6 +69,7 @@ export const SuperAdminDashboard: React.FC<{ onLogout: () => void, onEnterAssist
         status: formData.status,
         ...(formData.pinGerant && { pinGerant: formData.pinGerant }),
         ...(formData.pinProprietaire && { pinProprietaire: formData.pinProprietaire }),
+        ...(formData.pinServeur && { pinServeur: formData.pinServeur }),
       });
       setEditingBar(null);
       resetForm();
@@ -90,7 +91,7 @@ export const SuperAdminDashboard: React.FC<{ onLogout: () => void, onEnterAssist
   };
 
   const resetForm = () => {
-    setFormData({ nomBar: '', pinGerant: '', pinProprietaire: '', status: 'ACTIVE' });
+    setFormData({ nomBar: '', pinGerant: '', pinProprietaire: '', pinServeur: '', status: 'ACTIVE' });
   };
 
   const openEditModal = (bar: Bar) => {
@@ -99,6 +100,7 @@ export const SuperAdminDashboard: React.FC<{ onLogout: () => void, onEnterAssist
       nomBar: bar.nomBar,
       pinGerant: '', // Ne jamais afficher les PIN existants
       pinProprietaire: '',
+      pinServeur: '',
       status: bar.status
     });
   };
@@ -251,6 +253,10 @@ export const SuperAdminDashboard: React.FC<{ onLogout: () => void, onEnterAssist
                 <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '5px' }}>PIN Propriétaire {editingBar && '(Optionnel : laisser vide pour ne pas modifier)'}</label>
                 <input type="password" maxLength={4} minLength={4} pattern="\d{4}" title="4 chiffres requis" value={formData.pinProprietaire} onChange={e => setFormData({...formData, pinProprietaire: e.target.value})} style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #334155', borderRadius: '6px', color: '#fff' }} placeholder="Facultatif (4 chiffres)" />
               </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '5px' }}>PIN Serveur {editingBar && '(Optionnel : laisser vide pour ne pas modifier)'}</label>
+                <input type="password" maxLength={4} minLength={4} pattern="\d{4}" title="4 chiffres requis" value={formData.pinServeur} onChange={e => setFormData({...formData, pinServeur: e.target.value})} style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #334155', borderRadius: '6px', color: '#fff' }} placeholder="Facultatif (4 chiffres)" />
+              </div>
               <button type="submit" style={{ width: '100%', padding: '12px', background: '#f59e0b', color: '#000', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', marginTop: '10px' }}>
                 {editingBar ? 'Enregistrer les modifications' : 'Créer l\'établissement'}
               </button>
@@ -269,7 +275,7 @@ export const SuperAdminDashboard: React.FC<{ onLogout: () => void, onEnterAssist
             </div>
             <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #334155', paddingBottom: '10px' }}>
-                <span style={{ color: '#94a3b8' }}>ID du Bar</span>
+                <span style={{ color: '#94a3b8' }}>ID du Bar (Identifiant)</span>
                 <span style={{ fontWeight: 'bold' }}>{viewingBar.id}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #334155', paddingBottom: '10px' }}>

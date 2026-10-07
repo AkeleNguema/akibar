@@ -113,8 +113,8 @@ export const HomePage: React.FC<HomePageProps> = ({
             </button>
           </div>
           <div className="footer-socials">
-            <a href="#" aria-label="LinkedIn">LinkedIn</a>
-            <a href="#" aria-label="GitHub">GitHub</a>
+            <a href="mailto:contact@akibar.com" aria-label="Email de contact">contact@akibar.com</a>
+            <a href="https://wa.me/24100000000" aria-label="WhatsApp">WhatsApp</a>
           </div>
         </div>
         <div className="footer-bottom">

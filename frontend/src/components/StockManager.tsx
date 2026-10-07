@@ -1,4 +1,4 @@
-import { getProducts, supplyStock, returnEmptyCrates } from '../services/stockService';
+import { getProducts, supplyStock, returnEmptyCrates, addProduct, updateProduct, deleteProduct } from '../services/stockService';
 import { getConsignes, createConsigne, updateConsigneStatut } from '../services/consigneService';
 import React, { useEffect, useState } from 'react';
 import '../styles/stock.css';
@@ -18,6 +18,15 @@ export const StockManager: React.FC = () => {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  // Catalogue Management State
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [catNom, setCatNom] = useState('');
+  const [catCategorie, setCatCategorie] = useState('Bière');
+  const [catBouteillesParCasier, setCatBouteillesParCasier] = useState<number | ''>(24);
+  const [catPrixAchatCasier, setCatPrixAchatCasier] = useState<number | ''>('');
+  const [catPrixVenteBouteille, setCatPrixVenteBouteille] = useState<number | ''>('');
+  const [catSeuilStockBas, setCatSeuilStockBas] = useState<number | ''>(12);
 
   const fetchProductsList = async () => {
     try {
@@ -134,9 +143,115 @@ export const StockManager: React.FC = () => {
     }
   };
 
+  const handleProductSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage(null);
+    try {
+      const payload = {
+        nom: catNom,
+        categorie: catCategorie,
+        bouteillesParCasier: Number(catBouteillesParCasier),
+        prixAchatCasier: Number(catPrixAchatCasier),
+        prixVenteBouteille: Number(catPrixVenteBouteille),
+        seuilStockBas: Number(catSeuilStockBas)
+      };
+
+      if (editingProduct) {
+        await updateProduct(editingProduct.id, payload);
+        setMessage({ text: 'Boisson modifiée avec succès.', type: 'success' });
+      } else {
+        await addProduct(payload);
+        setMessage({ text: 'Boisson ajoutée avec succès.', type: 'success' });
+      }
+      resetProductForm();
+      await fetchProductsList();
+    } catch (err: any) {
+      setMessage({ text: err.response?.data?.error || 'Erreur lors de la sauvegarde.', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteProduct = async (id: string) => {
+    if (!window.confirm('Voulez-vous vraiment désactiver cette boisson ?')) return;
+    setLoading(true);
+    try {
+      await deleteProduct(id);
+      setMessage({ text: 'Boisson désactivée.', type: 'success' });
+      await fetchProductsList();
+    } catch (err) {
+      setMessage({ text: 'Erreur lors de la désactivation.', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const editProduct = (p: any) => {
+    setEditingProduct(p);
+    setCatNom(p.nom);
+    setCatCategorie(p.categorie);
+    setCatBouteillesParCasier(p.bouteillesParCasier);
+    setCatPrixAchatCasier(p.prixAchatCasier);
+    setCatPrixVenteBouteille(p.prixVenteBouteille);
+    setCatSeuilStockBas(p.seuilStockBas);
+  };
+
+  const resetProductForm = () => {
+    setEditingProduct(null);
+    setCatNom('');
+    setCatCategorie('Bière');
+    setCatBouteillesParCasier(24);
+    setCatPrixAchatCasier('');
+    setCatPrixVenteBouteille('');
+    setCatSeuilStockBas(12);
+  };
+
   return (
     <div className="stock-container">
       {message && <div className={`feedback-msg ${message.type}`}>{message.text}</div>}
+
+      <div className="stock-card">
+        <h3>Gestion du Catalogue (Boissons)</h3>
+        <form onSubmit={handleProductSubmit} className="stock-form" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+          <div className="form-group">
+            <label>Nom de la boisson</label>
+            <input type="text" className="form-input-stock" value={catNom} onChange={e => setCatNom(e.target.value)} required />
+          </div>
+          <div className="form-group">
+            <label>Catégorie</label>
+            <select className="form-select" value={catCategorie} onChange={e => setCatCategorie(e.target.value)} required>
+              {['Bière', 'Soda', 'Vin rouge', 'Vermouth', 'Whisky', 'Rhum', 'Cocktail', 'Mocktail', 'Eau', 'Rosé', 'Vin blanc', 'Autre'].map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Bouteilles par casier</label>
+            <input type="number" className="form-input-stock" value={catBouteillesParCasier} onChange={e => setCatBouteillesParCasier(e.target.value === '' ? '' : Number(e.target.value))} required />
+          </div>
+          <div className="form-group">
+            <label>Prix d'achat casier (FCFA)</label>
+            <input type="number" className="form-input-stock" value={catPrixAchatCasier} onChange={e => setCatPrixAchatCasier(e.target.value === '' ? '' : Number(e.target.value))} required />
+          </div>
+          <div className="form-group">
+            <label>Prix de vente bouteille (FCFA)</label>
+            <input type="number" className="form-input-stock" value={catPrixVenteBouteille} onChange={e => setCatPrixVenteBouteille(e.target.value === '' ? '' : Number(e.target.value))} required />
+          </div>
+          <div className="form-group">
+            <label>Seuil alerte stock bas (Bouteilles)</label>
+            <input type="number" className="form-input-stock" value={catSeuilStockBas} onChange={e => setCatSeuilStockBas(e.target.value === '' ? '' : Number(e.target.value))} required />
+          </div>
+          <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '10px' }}>
+            <button type="submit" className="submit-stock-btn" disabled={loading}>
+              {editingProduct ? 'Mettre à jour' : 'Ajouter au catalogue'}
+            </button>
+            {editingProduct && (
+              <button type="button" className="submit-stock-btn" style={{ background: '#64748b' }} onClick={resetProductForm}>
+                Annuler
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
 
       <div className="stock-card">
         <h3>Entrée de Stock (Casiers)</h3>
@@ -238,6 +353,7 @@ export const StockManager: React.FC = () => {
                 <th>Stock Bouteilles</th>
                 <th>Équivalent Casiers</th>
                 <th>Emballages Vides</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -267,6 +383,10 @@ export const StockManager: React.FC = () => {
                     </td>
                     <td>
                       <span style={{ color: '#94a3b8', fontWeight: 600 }}>{casiersVides} casiers</span>
+                    </td>
+                    <td>
+                      <button type="button" onClick={() => editProduct(product)} style={{ marginRight: '5px', background: '#3b82f6', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>Modifier</button>
+                      <button type="button" onClick={() => handleDeleteProduct(product.id)} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>Désactiver</button>
                     </td>
                   </tr>
                 );

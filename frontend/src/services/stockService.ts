@@ -29,6 +29,20 @@ export const getProducts = async (): Promise<Product[]> => {
   return response.data;
 };
 
+export const addProduct = async (product: Omit<Product, 'id'>): Promise<Product> => {
+  const response = await api.post('/api/products', product);
+  return response.data;
+};
+
+export const updateProduct = async (id: string, product: Omit<Product, 'id'>): Promise<Product> => {
+  const response = await api.put(`/api/products/${id}`, product);
+  return response.data;
+};
+
+export const deleteProduct = async (id: string): Promise<void> => {
+  await api.delete(`/api/products/${id}`);
+};
+
 // Récupérer l'état du stock avec les données produit
 export const getStockStatus = async (): Promise<StockItem[]> => {
   const response = await api.get('/api/stock');
@@ -48,5 +62,11 @@ export const returnEmptyCrates = async (payload: { productId: string; nombreCasi
     casiersRetournes: payload.nombreCasiers,
     rembourser: payload.rembourser
   });
+  return response.data;
+};
+
+// Signaler un incident (bouteille cassée) : route POST /api/stock/incident
+export const reportIncident = async (payload: { productId: string; quantite: number; note?: string }) => {
+  const response = await api.post('/api/stock/incident', payload);
   return response.data;
 };

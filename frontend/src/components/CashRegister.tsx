@@ -25,6 +25,7 @@ export const CashRegister: React.FC = () => {
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [saleType, setSaleType] = useState<'VENTE' | 'PERTE' | 'CASSE' | 'OFFERT'>('VENTE');
   const [consigneCasiers, setConsigneCasiers] = useState<number | ''>('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const [showTables, setShowTables] = useState<boolean>(false);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
@@ -204,29 +205,59 @@ export const CashRegister: React.FC = () => {
         {message && <div className={`feedback-msg ${message.type}`}>{message.text}</div>}
 
         <div className="products-grid">
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {products.map((product: any) => {
-            const stock = Array.isArray(product.stocks) && product.stocks.length > 0
-              ? product.stocks[0].quantiteBouteilles
-              : 0;
-            const isOutOfStock = stock <= 0;
-
-            return (
+          {!selectedCategory ? (
+            // Categories View
+            ['Bière', 'Soda', 'Vin rouge', 'Vermouth', 'Whisky', 'Rhum', 'Cocktail', 'Mocktail', 'Eau', 'Rosé', 'Vin blanc', 'Autre'].map(cat => {
+              const count = products.filter(p => (p.categorie === cat) || (cat === 'Autre' && !['Bière', 'Soda', 'Vin rouge', 'Vermouth', 'Whisky', 'Rhum', 'Cocktail', 'Mocktail', 'Eau', 'Rosé', 'Vin blanc'].includes(p.categorie))).length;
+              if (count === 0 && cat !== 'Bière') return null; // Only show populated categories
+              return (
+                <button
+                  type="button"
+                  key={cat}
+                  className="product-btn-card"
+                  onClick={() => setSelectedCategory(cat)}
+                  style={{ background: '#1e293b', padding: '20px', minHeight: '120px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}
+                >
+                  <div className="p-name" style={{ fontSize: '1.2rem', marginBottom: '10px' }}>{cat}</div>
+                  <div className="p-stock">{count} boisson(s)</div>
+                </button>
+              );
+            })
+          ) : (
+            // Products View
+            <>
               <button
                 type="button"
-                key={product.id}
-                className={`product-btn-card ${isOutOfStock ? 'out-of-stock' : ''}`}
-                onClick={() => addToCart(product)}
-                disabled={isOutOfStock}
-                aria-label={`Ajouter ${product.nom} au panier. Prix: ${product.prixVenteBouteille} FCFA`}
-                role="button"
+                className="product-btn-card"
+                onClick={() => setSelectedCategory(null)}
+                style={{ background: '#334155', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
               >
-                <div className="p-name">{product.nom}</div>
-                <div className="p-price">{(product.prixVenteBouteille || 0).toLocaleString('fr-FR')} FCFA</div>
-                <div className="p-stock">{isOutOfStock ? 'Rupture' : `${stock} btls en stock`}</div>
+                <div className="p-name">⬅ Retour aux catégories</div>
               </button>
-            );
-          })}
+              {products.filter(p => (p.categorie === selectedCategory) || (selectedCategory === 'Autre' && !['Bière', 'Soda', 'Vin rouge', 'Vermouth', 'Whisky', 'Rhum', 'Cocktail', 'Mocktail', 'Eau', 'Rosé', 'Vin blanc'].includes(p.categorie))).map((product: any) => {
+                const stock = Array.isArray(product.stocks) && product.stocks.length > 0
+                  ? product.stocks[0].quantiteBouteilles
+                  : 0;
+                const isOutOfStock = stock <= 0;
+
+                return (
+                  <button
+                    type="button"
+                    key={product.id}
+                    className={`product-btn-card ${isOutOfStock ? 'out-of-stock' : ''}`}
+                    onClick={() => addToCart(product)}
+                    disabled={isOutOfStock}
+                    aria-label={`Ajouter ${product.nom} au panier. Prix: ${product.prixVenteBouteille} FCFA`}
+                    role="button"
+                  >
+                    <div className="p-name">{product.nom}</div>
+                    <div className="p-price">{(product.prixVenteBouteille || 0).toLocaleString('fr-FR')} FCFA</div>
+                    <div className="p-stock">{isOutOfStock ? 'Rupture' : `${stock} btls en stock`}</div>
+                  </button>
+                );
+              })}
+            </>
+          )}
         </div>
       </div>
 

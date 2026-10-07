@@ -154,3 +154,60 @@ export const manualStockAdjustment = async (req: any, res: Response) => {
     return res.status(500).json({ message: "Erreur lors de l'ajustement du stock.", error: error.message });
   }
 };
+
+export const reportIncident = async (req: any, res: Response) => {
+  try {
+    const barId = req.barId || req.bar?.id;
+    const { productId, quantite, note } = req.body;
+
+    if (!barId) return res.status(401).json({ message: "Établissement non authentifié." });
+    if (!productId || !quantite) {
+      return res.status(400).json({ message: "ID produit et quantité requis." });
+    }
+
+    const stock = await prisma.stock.findUnique({
+      where: { barId_productId: { barId, productId } },
+      include: { product: true }
+    });
+
+    if (!stock) return res.status(404).json({ message: "Stock non trouvé." });
+
+    if (stock.quantiteBouteilles < quantite) {
+       return res.status(400).json({ message: "Stock insuffisant pour déclarer cet incident." });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.stock.update({
+        where: { id: stock.id },
+        data: { quantiteBouteilles: { decrement: Number(quantite) } }
+      });
+
+      await tx.incident.create({
+        data: {
+          barId,
+          productId,
+          quantite: Number(quantite),
+          note
+        }
+      });
+
+      await tx.auditLog.create({
+        data: {
+          barId,
+          action: 'INCIDENT_DECLARE',
+          details: JSON.stringify({ 
+            productId, 
+            produit: stock.product.nom,
+            quantitePerdue: quantite,
+            note
+          })
+        }
+      });
+    });
+
+    return res.status(200).json({ message: "Incident enregistré avec succès." });
+  } catch (error: any) {
+    console.error("Erreur reportIncident:", error);
+    return res.status(500).json({ message: "Erreur lors de l'enregistrement de l'incident.", error: error.message });
+  }
+};
