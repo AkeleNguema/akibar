@@ -159,22 +159,22 @@ export const SuperAdminDashboard: React.FC<{ onLogout: () => void, onEnterAssist
       </div>
 
       {/* TOOLBAR */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', gap: '15px', flex: 1, minWidth: '300px' }}>
-          <div style={{ position: 'relative', flex: 1 }}>
-            <Search size={18} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+      <div className="flex flex-wrap gap-4 justify-between items-center mb-5 w-full">
+        <div className="flex w-full gap-4 items-center flex-1">
+          <div className="relative flex-1 max-w-md">
+            <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
             <input 
               type="text" 
               placeholder="Rechercher par ID ou nom..." 
               value={searchTerm} 
               onChange={e => setSearchTerm(e.target.value)}
-              style={{ width: '100%', padding: '10px 10px 10px 35px', background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', color: '#fff' }}
+              className="w-full py-2 pl-10 pr-3 bg-slate-800 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
             />
           </div>
           <select 
             value={statusFilter} 
             onChange={e => setStatusFilter(e.target.value as any)}
-            style={{ padding: '10px', background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', color: '#fff' }}
+            className="py-2 px-3 bg-slate-800 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
           >
             <option value="ALL">Tous les statuts</option>
             <option value="ACTIVE">Actifs</option>
